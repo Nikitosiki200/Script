@@ -77,9 +77,11 @@ MinimizeButton.TextSize = 14.000
 
 TeleportFrame.Name = "TeleportFrame"
 TeleportFrame.Parent = MainFrame
-TeleportFrame.BackgroundTransparency = 1
+TeleportFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+TeleportFrame.BackgroundTransparency = 1  -- Исправлено: теперь прозрачный фон
 TeleportFrame.Position = UDim2.new(0, 0, 0, 25)
 TeleportFrame.Size = UDim2.new(1, 0, 1, -25)
+TeleportFrame.ClipsDescendants = true
 
 UIListLayout.Parent = TeleportFrame
 UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
