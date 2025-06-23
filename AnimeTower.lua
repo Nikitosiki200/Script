@@ -3,7 +3,7 @@ local character = player.Character or player.CharacterAdded:Wait()
 local rootPart = character:WaitForChild("HumanoidRootPart")
 
 local targetPosition = Vector3.new(-41, 364, 878)
-local teleportDelay = 80 -- секунд
+local teleportDelay = 60 -- секунд
 local autoTeleportEnabled = true
 local remainingTime = teleportDelay
 local isTeleporting = false
