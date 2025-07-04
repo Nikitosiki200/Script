@@ -1,4 +1,4 @@
--- Полный скрипт Position Saver GUI для Roblox
+-- Полный скрипт Position Saver GUI для Roblox с выделением и удалением
 local Player = game:GetService("Players").LocalPlayer
 local UserInputService = game:GetService("UserInputService")
 
@@ -10,8 +10,8 @@ ScreenGui.Parent = game:GetService("CoreGui")
 -- Главное окно (перемещаемое)
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 300, 0, 250)
-MainFrame.Position = UDim2.new(0.5, -150, 0.5, -125)
+MainFrame.Size = UDim2.new(0, 350, 0, 300)
+MainFrame.Position = UDim2.new(0.5, -175, 0.5, -150)
 MainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
@@ -75,7 +75,7 @@ Tab2.Parent = MainFrame
 -- Прокручиваемый фрейм для сохраненных позиций
 local SavedPositionsScrolling = Instance.new("ScrollingFrame")
 SavedPositionsScrolling.Name = "SavedPositionsScrolling"
-SavedPositionsScrolling.Size = UDim2.new(1, -20, 1, -20)
+SavedPositionsScrolling.Size = UDim2.new(1, -20, 1, -50)
 SavedPositionsScrolling.Position = UDim2.new(0, 10, 0, 10)
 SavedPositionsScrolling.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 SavedPositionsScrolling.AutomaticCanvasSize = Enum.AutomaticSize.Y
@@ -85,6 +85,17 @@ SavedPositionsScrolling.Parent = Tab2
 local UIListLayout = Instance.new("UIListLayout")
 UIListLayout.Parent = SavedPositionsScrolling
 UIListLayout.Padding = UDim.new(0, 5)
+
+-- Кнопка удаления выделенных позиций
+local DeleteSelectedButton = Instance.new("TextButton")
+DeleteSelectedButton.Name = "DeleteSelectedButton"
+DeleteSelectedButton.Size = UDim2.new(1, -20, 0, 30)
+DeleteSelectedButton.Position = UDim2.new(0, 10, 1, -40)
+DeleteSelectedButton.Text = "Delete Selected"
+DeleteSelectedButton.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
+DeleteSelectedButton.TextColor3 = Color3.new(1, 1, 1)
+DeleteSelectedButton.Visible = false
+DeleteSelectedButton.Parent = Tab2
 
 -- Элементы первой вкладки
 local SavePosButton = Instance.new("TextButton")
@@ -126,6 +137,7 @@ SaveNamedButton.Parent = Tab1
 -- Переменные
 local LastSavedPosition = nil
 local SavedPositions = {}
+local SelectedPositions = {}
 
 -- Функции
 local function SavePosition()
@@ -172,6 +184,68 @@ local function TeleportToSaved()
     end
 end
 
+local function CreatePositionButton(name, position)
+    local buttonFrame = Instance.new("Frame")
+    buttonFrame.Name = name
+    buttonFrame.Size = UDim2.new(1, -10, 0, 40)
+    buttonFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    buttonFrame.Parent = SavedPositionsScrolling
+
+    local selectBox = Instance.new("TextButton")
+    selectBox.Name = "SelectBox"
+    selectBox.Size = UDim2.new(0, 20, 0, 20)
+    selectBox.Position = UDim2.new(0, 5, 0.5, -10)
+    selectBox.Text = ""
+    selectBox.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+    selectBox.BorderSizePixel = 2
+    selectBox.BorderColor3 = Color3.fromRGB(120, 120, 120)
+    selectBox.Parent = buttonFrame
+
+    local positionButton = Instance.new("TextButton")
+    positionButton.Name = "PositionButton"
+    positionButton.Size = UDim2.new(1, -35, 1, -5)
+    positionButton.Position = UDim2.new(0, 30, 0, 2.5)
+    positionButton.Text = name
+    positionButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    positionButton.TextColor3 = Color3.new(1, 1, 1)
+    positionButton.Parent = buttonFrame
+
+    -- Функция выделения
+    selectBox.MouseButton1Click:Connect(function()
+        SelectedPositions[name] = not SelectedPositions[name]
+        if SelectedPositions[name] then
+            selectBox.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
+            DeleteSelectedButton.Visible = true
+        else
+            selectBox.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+            -- Проверяем, есть ли еще выделенные элементы
+            local anySelected = false
+            for _, selected in pairs(SelectedPositions) do
+                if selected then
+                    anySelected = true
+                    break
+                end
+            end
+            DeleteSelectedButton.Visible = anySelected
+        end
+    end)
+
+    -- Функция телепортации
+    positionButton.MouseButton1Click:Connect(function()
+        local character = Player.Character
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            character.HumanoidRootPart.CFrame = position
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = "Teleported",
+                Text = "Teleported to "..name,
+                Duration = 2
+            })
+        end
+    end)
+
+    return buttonFrame
+end
+
 local function SaveNamedPosition()
     if not LastSavedPosition then
         game:GetService("StarterGui"):SetCore("SendNotification", {
@@ -192,29 +266,20 @@ local function SaveNamedPosition()
         return
     end
     
+    -- Проверяем, существует ли уже позиция с таким именем
+    if SavedPositions[name] then
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Error",
+            Text = "Position with this name already exists",
+            Duration = 2
+        })
+        return
+    end
+    
     SavedPositions[name] = LastSavedPosition
+    SelectedPositions[name] = false
     
-    -- Создание кнопки во второй вкладке
-    local newButton = Instance.new("TextButton")
-    newButton.Name = name
-    newButton.Size = UDim2.new(1, -10, 0, 40)
-    newButton.Text = name
-    newButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-    newButton.TextColor3 = Color3.new(1, 1, 1)
-    
-    newButton.MouseButton1Click:Connect(function()
-        local character = Player.Character
-        if character and character:FindFirstChild("HumanoidRootPart") then
-            character.HumanoidRootPart.CFrame = SavedPositions[name]
-            game:GetService("StarterGui"):SetCore("SendNotification", {
-                Title = "Teleported",
-                Text = "Teleported to "..name,
-                Duration = 2
-            })
-        end
-    end)
-    
-    newButton.Parent = SavedPositionsScrolling
+    CreatePositionButton(name, LastSavedPosition)
     
     game:GetService("StarterGui"):SetCore("SendNotification", {
         Title = "Saved",
@@ -225,10 +290,43 @@ local function SaveNamedPosition()
     NameTextBox.Text = ""
 end
 
+local function DeleteSelectedPositions()
+    local toDelete = {}
+    
+    -- Собираем имена позиций для удаления
+    for name, selected in pairs(SelectedPositions) do
+        if selected then
+            table.insert(toDelete, name)
+        end
+    end
+    
+    -- Удаляем позиции
+    for _, name in ipairs(toDelete) do
+        SavedPositions[name] = nil
+        SelectedPositions[name] = nil
+        
+        -- Удаляем кнопку из GUI
+        local button = SavedPositionsScrolling:FindFirstChild(name)
+        if button then
+            button:Destroy()
+        end
+    end
+    
+    -- Скрываем кнопку удаления, если ничего не выделено
+    DeleteSelectedButton.Visible = false
+    
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "Deleted",
+        Text = #toDelete.." positions deleted",
+        Duration = 2
+    })
+end
+
 -- Подключение событий
 SavePosButton.MouseButton1Click:Connect(SavePosition)
 TeleportToSavedButton.MouseButton1Click:Connect(TeleportToSaved)
 SaveNamedButton.MouseButton1Click:Connect(SaveNamedPosition)
+DeleteSelectedButton.MouseButton1Click:Connect(DeleteSelectedPositions)
 
 -- Переключение вкладок
 Tab1Button.MouseButton1Click:Connect(function()
