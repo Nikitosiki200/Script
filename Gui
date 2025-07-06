@@ -1,0 +1,53 @@
+local MyGuiLib = {
+    Windows = {},
+    Themes = {
+        Dark = {
+            Background = Color3.fromRGB(30, 30, 30),
+            TextColor = Color3.fromRGB(255, 255, 255),
+            -- другие цвета темы
+        },
+        Light = {
+            -- аналогично для светлой темы
+        }
+    }
+}
+function MyGuiLib:CreateWindow(title, options)
+    options = options or {}
+    local window = {
+        Title = title,
+        Tabs = {},
+        CurrentTheme = options.Theme or "Dark"
+    }
+    
+    -- Здесь будет код для создания визуального окна
+    -- с использованием Drawing.new или других методов
+    
+    table.insert(self.Windows, window)
+    return window
+end
+function window:CreateTab(name)
+    local tab = {
+        Name = name,
+        Sections = {},
+        Buttons = {},
+        Toggles = {},
+        Sliders = {}
+    }
+    
+    -- Код для создания визуальной вкладки
+    
+    table.insert(self.Tabs, tab)
+    return tab
+end
+function tab:CreateButton(text, callback)
+    local button = {
+        Text = text,
+        Callback = callback
+    }
+    
+    -- Визуальное создание кнопки
+    -- Обработка кликов
+    
+    table.insert(self.Buttons, button)
+    return button
+end
