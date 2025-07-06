@@ -51,3 +51,22 @@ function tab:CreateButton(text, callback)
     table.insert(self.Buttons, button)
     return button
 end
+local buttonBackground = Drawing.new("Square")
+buttonBackground.Visible = true
+buttonBackground.Filled = true
+buttonBackground.Color = Color3.fromRGB(60, 60, 60)
+buttonBackground.Size = Vector2.new(150, 30)
+game:GetService("UserInputService").InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        -- Проверка клика по элементам
+    end
+end)
+function button:HoverAnimation()
+    -- Плавное изменение цвета при наведении
+end
+function MyGuiLib:SetTheme(themeName)
+    for _, window in ipairs(self.Windows) do
+        window.CurrentTheme = themeName
+        -- Применение цветов темы ко всем элементам
+    end
+end
