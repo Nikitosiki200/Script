@@ -52,12 +52,13 @@ function MyGuiLib:CreateWindow(title, options)
         NextElementY = 40
     }
     
-    -- Проверка существования темы
+    -- Проверка и установка темы
     if not self.Themes[window.CurrentTheme] then
         window.CurrentTheme = "Dark"
+        warn("Тема не найдена, используется тема Dark по умолчанию")
     end
     
-    local theme = self.Themes[window.CurrentTheme]
+    local theme = self.Themes[window.CurrentTheme] or self.Themes.Dark
     
     -- Создание элементов окна
     window.Elements.Background = CreateRoundedSquare()
@@ -115,6 +116,40 @@ function MyGuiLib:CreateWindow(title, options)
         window.MobileToggle.Elements.Text.Color = Color3.new(1, 1, 1)
         window.MobileToggle.Elements.Text.Size = 16
         window.MobileToggle.Elements.Text.Position = window.MobileToggle.Position + Vector2.new(15, 15)
+        
+        -- Обработка перемещения кнопки
+        local dragStart, toggleDrag = nil, false
+        game:GetService("UserInputService").InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.Touch then
+                local pos = input.Position
+                local togglePos = window.MobileToggle.Position
+                local toggleSize = window.MobileToggle.Size
+                
+                if pos.X >= togglePos.X and pos.X <= togglePos.X + toggleSize.X and
+                   pos.Y >= togglePos.Y and pos.Y <= togglePos.Y + toggleSize.Y then
+                    toggleDrag = true
+                    dragStart = pos
+                    window:SetVisible(not window.Visible)
+                end
+            end
+        end)
+        
+        game:GetService("UserInputService").InputChanged:Connect(function(input)
+            if toggleDrag and input.UserInputType == Enum.UserInputType.Touch then
+                local delta = input.Position - dragStart
+                window.MobileToggle.Position = window.MobileToggle.Position + delta
+                dragStart = input.Position
+                
+                window.MobileToggle.Elements.Background.Position = window.MobileToggle.Position
+                window.MobileToggle.Elements.Text.Position = window.MobileToggle.Position + Vector2.new(15, 15)
+            end
+        end)
+        
+        game:GetService("UserInputService").InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.Touch then
+                toggleDrag = false
+            end
+        end)
     end
     
     -- Обработка ввода
@@ -122,18 +157,24 @@ function MyGuiLib:CreateWindow(title, options)
     
     -- Методы окна
     function window:UpdatePositions()
+        if not self.Elements or not self.Elements.Background then return end
+        
         self.Elements.Background.Position = self.Position
         self.Elements.Header.Position = self.Position
         self.Elements.Title.Position = self.Position + Vector2.new(10, 5)
         
         if not self.IsMobile and self.Elements.CloseButton then
             self.Elements.CloseButton.Position = self.Position + Vector2.new(self.Size.X - 25, 5)
-            self.Elements.CloseText.Position = self.Elements.CloseButton.Position + Vector2.new(6, 1)
+            if self.Elements.CloseText then
+                self.Elements.CloseText.Position = self.Elements.CloseButton.Position + Vector2.new(6, 1)
+            end
         end
         
         -- Обновляем позиции всех элементов вкладок
         for _, tab in ipairs(self.Tabs) do
-            tab:UpdateElements()
+            if tab and tab.UpdateElements then
+                tab:UpdateElements()
+            end
         end
     end
     
@@ -149,43 +190,94 @@ function MyGuiLib:CreateWindow(title, options)
             NextElementY = 40
         }
         
+        -- Текст вкладки
+        tab.Elements.Text = CreateText()
+        tab.Elements.Text.Visible = self.Visible
+        tab.Elements.Text.Text = name
+        tab.Elements.Text.Color = theme.TextColor
+        tab.Elements.Text.Size = 16
+        tab.Elements.Text.Position = Vector2.new(self.Position.X + 10 + ((#self.Tabs) * 70), self.Position.Y + 35)
+        
         -- Методы вкладки
         function tab:UpdateElements()
+            if not self.ParentWindow or not self.ParentWindow.Position then return end
+            
             local currentY = self.ParentWindow.Position.Y + 40
             
             -- Обновляем кнопки
             for _, button in ipairs(self.Buttons) do
-                button.Elements.Background.Position = Vector2.new(self.ParentWindow.Position.X + 10, currentY)
-                button.Elements.Text.Position = button.Elements.Background.Position + Vector2.new(10, 5)
-                currentY = currentY + 40
+                if button and button.Elements and button.Elements.Background then
+                    button.Elements.Background.Position = Vector2.new(self.ParentWindow.Position.X + 10, currentY)
+                    if button.Elements.Text then
+                        button.Elements.Text.Position = button.Elements.Background.Position + Vector2.new(10, 5)
+                    end
+                    currentY = currentY + 40
+                end
             end
             
             -- Обновляем слайдеры
             for _, slider in ipairs(self.Sliders) do
-                slider.Elements.Background.Position = Vector2.new(self.ParentWindow.Position.X + 10, currentY)
-                slider.Elements.Fill.Position = slider.Elements.Background.Position
-                slider.Elements.Text.Position = Vector2.new(slider.Elements.Background.Position.X, currentY - 20)
-                slider.Elements.ValueText.Position = Vector2.new(slider.Elements.Background.Position.X + slider.Elements.Background.Size.X - 30, currentY + 5)
-                currentY = currentY + 60
+                if slider and slider.Elements and slider.Elements.Background then
+                    slider.Elements.Background.Position = Vector2.new(self.ParentWindow.Position.X + 10, currentY)
+                    if slider.Elements.Fill then
+                        slider.Elements.Fill.Position = slider.Elements.Background.Position
+                        slider.Elements.Fill.Size = Vector2.new(
+                            (slider.Value - slider.Min) / (slider.Max - slider.Min) * slider.Elements.Background.Size.X,
+                            slider.Elements.Background.Size.Y
+                        )
+                    end
+                    if slider.Elements.Text then
+                        slider.Elements.Text.Position = Vector2.new(slider.Elements.Background.Position.X, currentY - 20)
+                    end
+                    if slider.Elements.ValueText then
+                        slider.Elements.ValueText.Position = Vector2.new(
+                            slider.Elements.Background.Position.X + slider.Elements.Background.Size.X - 30, 
+                            currentY + 5
+                        )
+                        slider.Elements.ValueText.Text = tostring(slider.Value)
+                    end
+                    currentY = currentY + 60
+                end
             end
             
             -- Обновляем текстовые поля
             for _, textbox in ipairs(self.TextBoxes) do
-                textbox.Elements.Background.Position = Vector2.new(self.ParentWindow.Position.X + 10, currentY)
-                textbox.Elements.Text.Position = textbox.Elements.Background.Position + Vector2.new(10, 5)
-                currentY = currentY + 40
+                if textbox and textbox.Elements and textbox.Elements.Background then
+                    textbox.Elements.Background.Position = Vector2.new(self.ParentWindow.Position.X + 10, currentY)
+                    if textbox.Elements.Text then
+                        textbox.Elements.Text.Position = textbox.Elements.Background.Position + Vector2.new(10, 5)
+                        textbox.Elements.Text.Text = textbox.Text == "" and textbox.Placeholder or textbox.Text
+                        textbox.Elements.Text.Color = textbox.Text == "" and Color3.fromRGB(150, 150, 150) or theme.TextColor
+                    end
+                    currentY = currentY + 40
+                end
             end
             
             -- Обновляем переключатели
             for _, toggle in ipairs(self.Toggles) do
-                toggle.Elements.Background.Position = Vector2.new(self.ParentWindow.Position.X + 10, currentY)
-                toggle.Elements.Toggle.Position = Vector2.new(self.ParentWindow.Position.X + self.ParentWindow.Size.X - 40, currentY + 5)
-                toggle.Elements.Text.Position = Vector2.new(self.ParentWindow.Position.X + 15, currentY + 5)
-                currentY = currentY + 40
+                if toggle and toggle.Elements and toggle.Elements.Background then
+                    toggle.Elements.Background.Position = Vector2.new(self.ParentWindow.Position.X + 10, currentY)
+                    if toggle.Elements.Toggle then
+                        toggle.Elements.Toggle.Position = Vector2.new(
+                            self.ParentWindow.Position.X + self.ParentWindow.Size.X - 40, 
+                            currentY + 5
+                        )
+                        toggle.Elements.Toggle.Color = toggle.Value and theme.ToggleOn or theme.ToggleOff
+                    end
+                    if toggle.Elements.Text then
+                        toggle.Elements.Text.Position = Vector2.new(self.ParentWindow.Position.X + 15, currentY + 5)
+                    end
+                    currentY = currentY + 40
+                end
             end
         end
         
         function tab:CreateButton(text, callback)
+            if not self.ParentWindow or not self.ParentWindow.Themes then return end
+            
+            local theme = self.ParentWindow.Themes[self.ParentWindow.CurrentTheme] or self.ParentWindow.Themes.Dark
+            if not theme then return end
+            
             local button = {
                 Text = text,
                 Callback = callback,
@@ -193,18 +285,16 @@ function MyGuiLib:CreateWindow(title, options)
                 Elements = {}
             }
             
-            local theme = self.ParentWindow.Themes[self.ParentWindow.CurrentTheme]
-            
             button.Elements.Background = CreateRoundedSquare()
             button.Elements.Background.Visible = self.ParentWindow.Visible
-            button.Elements.Background.Color = theme.Button
+            button.Elements.Background.Color = theme.Button or Color3.fromRGB(50, 50, 60)
             button.Elements.Background.Size = Vector2.new(self.ParentWindow.Size.X - 20, 30)
             button.Elements.Background.Position = Vector2.new(self.ParentWindow.Position.X + 10, self.ParentWindow.Position.Y + self.NextElementY)
             
             button.Elements.Text = CreateText()
             button.Elements.Text.Visible = self.ParentWindow.Visible
             button.Elements.Text.Text = text
-            button.Elements.Text.Color = theme.TextColor
+            button.Elements.Text.Color = theme.TextColor or Color3.fromRGB(255, 255, 255)
             button.Elements.Text.Size = 16
             button.Elements.Text.Position = button.Elements.Background.Position + Vector2.new(10, 5)
             
@@ -217,10 +307,10 @@ function MyGuiLib:CreateWindow(title, options)
                     
                     if pos.X >= btnPos.X and pos.X <= btnPos.X + btnSize.X and
                        pos.Y >= btnPos.Y and pos.Y <= btnPos.Y + btnSize.Y then
-                        button.Elements.Background.Color = theme.Accent
+                        button.Elements.Background.Color = theme.Accent or Color3.fromRGB(0, 150, 255)
                         task.wait(0.1)
-                        button.Elements.Background.Color = theme.Button
-                        callback()
+                        button.Elements.Background.Color = theme.Button or Color3.fromRGB(50, 50, 60)
+                        if callback then callback() end
                     end
                 end
             end)
@@ -231,6 +321,11 @@ function MyGuiLib:CreateWindow(title, options)
         end
         
         function tab:CreateSlider(text, min, max, defaultValue, callback)
+            if not self.ParentWindow or not self.ParentWindow.Themes then return end
+            
+            local theme = self.ParentWindow.Themes[self.ParentWindow.CurrentTheme] or self.ParentWindow.Themes.Dark
+            if not theme then return end
+            
             local slider = {
                 Text = text,
                 Min = min,
@@ -241,8 +336,6 @@ function MyGuiLib:CreateWindow(title, options)
                 Elements = {},
                 Dragging = false
             }
-            
-            local theme = self.ParentWindow.Themes[self.ParentWindow.CurrentTheme]
             
             slider.Elements.Text = CreateText()
             slider.Elements.Text.Visible = self.ParentWindow.Visible
@@ -260,7 +353,10 @@ function MyGuiLib:CreateWindow(title, options)
             slider.Elements.Fill = CreateRoundedSquare()
             slider.Elements.Fill.Visible = self.ParentWindow.Visible
             slider.Elements.Fill.Color = theme.SliderFill
-            slider.Elements.Fill.Size = Vector2.new(0, 10)
+            slider.Elements.Fill.Size = Vector2.new(
+                ((slider.Value - slider.Min) / (slider.Max - slider.Min)) * slider.Elements.Background.Size.X,
+                slider.Elements.Background.Size.Y
+            )
             slider.Elements.Fill.Position = slider.Elements.Background.Position
             
             slider.Elements.ValueText = CreateText()
@@ -314,6 +410,11 @@ function MyGuiLib:CreateWindow(title, options)
         end
         
         function tab:CreateTextBox(placeholder, callback)
+            if not self.ParentWindow or not self.ParentWindow.Themes then return end
+            
+            local theme = self.ParentWindow.Themes[self.ParentWindow.CurrentTheme] or self.ParentWindow.Themes.Dark
+            if not theme then return end
+            
             local textbox = {
                 Placeholder = placeholder,
                 Text = "",
@@ -323,8 +424,6 @@ function MyGuiLib:CreateWindow(title, options)
                 Focused = false
             }
             
-            local theme = self.ParentWindow.Themes[self.ParentWindow.CurrentTheme]
-            
             textbox.Elements.Background = CreateRoundedSquare()
             textbox.Elements.Background.Visible = self.ParentWindow.Visible
             textbox.Elements.Background.Color = theme.TextBox
@@ -333,8 +432,8 @@ function MyGuiLib:CreateWindow(title, options)
             
             textbox.Elements.Text = CreateText()
             textbox.Elements.Text.Visible = self.ParentWindow.Visible
-            textbox.Elements.Text.Text = textbox.Focused and textbox.Text or (textbox.Text == "" and placeholder or textbox.Text)
-            textbox.Elements.Text.Color = textbox.Text == "" and Color3.fromRGB(150, 150, 150) or theme.TextColor
+            textbox.Elements.Text.Text = placeholder
+            textbox.Elements.Text.Color = Color3.fromRGB(150, 150, 150)
             textbox.Elements.Text.Size = 16
             textbox.Elements.Text.Position = textbox.Elements.Background.Position + Vector2.new(10, 5)
             
@@ -354,32 +453,32 @@ function MyGuiLib:CreateWindow(title, options)
                         textbox.Focused = false
                         textbox.Elements.Text.Text = textbox.Text == "" and placeholder or textbox.Text
                         textbox.Elements.Text.Color = textbox.Text == "" and Color3.fromRGB(150, 150, 150) or theme.TextColor
+                        if callback then callback(textbox.Text) end
                     end
                 end
             end)
             
-            -- Обработка ввода текста
-            userInput.TextBoxFocused:Connect(function()
-                if textbox.Focused then
-                    userInput.InputBegan:Connect(function(input)
-                        if input.KeyCode == Enum.KeyCode.Return then
-                            textbox.Focused = false
-                            if callback then callback(textbox.Text) end
-                        end
-                    end)
-                end
-            end)
-            
-            userInput.TextBoxInput:Connect(function(input)
-                if textbox.Focused then
-                    if input.KeyCode == Enum.KeyCode.Backspace then
+            -- Обработка ввода текста (для ПК)
+            if not MyGuiLib.IsMobile then
+                userInput.InputBegan:Connect(function(input)
+                    if textbox.Focused and input.KeyCode == Enum.KeyCode.Return then
+                        textbox.Focused = false
+                        textbox.Elements.Text.Text = textbox.Text == "" and placeholder or textbox.Text
+                        textbox.Elements.Text.Color = textbox.Text == "" and Color3.fromRGB(150, 150, 150) or theme.TextColor
+                        if callback then callback(textbox.Text) end
+                    elseif textbox.Focused and input.KeyCode == Enum.KeyCode.Backspace then
                         textbox.Text = textbox.Text:sub(1, -2)
-                    elseif input.KeyCode ~= Enum.KeyCode.Return then
-                        textbox.Text = textbox.Text .. input.Text
+                        textbox.Elements.Text.Text = textbox.Text
                     end
-                    textbox.Elements.Text.Text = textbox.Text
-                end
-            end)
+                end)
+                
+                userInput.TextBoxInput:Connect(function(input)
+                    if textbox.Focused and input.KeyCode ~= Enum.KeyCode.Return then
+                        textbox.Text = textbox.Text .. input.Text
+                        textbox.Elements.Text.Text = textbox.Text
+                    end
+                end)
+            end
             
             self.NextElementY = self.NextElementY + 40
             table.insert(self.TextBoxes, textbox)
@@ -387,6 +486,11 @@ function MyGuiLib:CreateWindow(title, options)
         end
         
         function tab:CreateToggle(text, defaultValue, callback)
+            if not self.ParentWindow or not self.ParentWindow.Themes then return end
+            
+            local theme = self.ParentWindow.Themes[self.ParentWindow.CurrentTheme] or self.ParentWindow.Themes.Dark
+            if not theme then return end
+            
             local toggle = {
                 Text = text,
                 Value = defaultValue or false,
@@ -394,8 +498,6 @@ function MyGuiLib:CreateWindow(title, options)
                 ParentTab = self,
                 Elements = {}
             }
-            
-            local theme = self.ParentWindow.Themes[self.ParentWindow.CurrentTheme]
             
             toggle.Elements.Background = CreateRoundedSquare()
             toggle.Elements.Background.Visible = self.ParentWindow.Visible
@@ -443,40 +545,55 @@ function MyGuiLib:CreateWindow(title, options)
     
     function window:SetVisible(state)
         self.Visible = state
+        
+        -- Обновляем видимость элементов окна
         for _, element in pairs(self.Elements) do
             if element then element.Visible = state end
         end
         
+        -- Обновляем видимость элементов вкладок
         for _, tab in ipairs(self.Tabs) do
+            if not tab then continue end
+            
+            -- Обновляем элементы вкладки
             for _, element in pairs(tab.Elements) do
                 if element then element.Visible = state end
             end
             
+            -- Обновляем кнопки
             for _, button in ipairs(tab.Buttons) do
+                if not button or not button.Elements then continue end
                 for _, element in pairs(button.Elements) do
                     if element then element.Visible = state end
                 end
             end
             
+            -- Обновляем слайдеры
             for _, slider in ipairs(tab.Sliders) do
+                if not slider or not slider.Elements then continue end
                 for _, element in pairs(slider.Elements) do
                     if element then element.Visible = state end
                 end
             end
             
+            -- Обновляем текстовые поля
             for _, textbox in ipairs(tab.TextBoxes) do
+                if not textbox or not textbox.Elements then continue end
                 for _, element in pairs(textbox.Elements) do
                     if element then element.Visible = state end
                 end
             end
             
+            -- Обновляем переключатели
             for _, toggle in ipairs(tab.Toggles) do
+                if not toggle or not toggle.Elements then continue end
                 for _, element in pairs(toggle.Elements) do
                     if element then element.Visible = state end
                 end
             end
         end
         
+        -- Мобильная кнопка всегда видима
         if self.MobileToggle then
             for _, element in pairs(self.MobileToggle.Elements) do
                 if element then element.Visible = true end
