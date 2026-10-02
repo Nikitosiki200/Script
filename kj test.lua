@@ -960,21 +960,35 @@ end)
 local CONFIG_FOLDER = "KJTest_Configs"
 local function ensureFolder()
     if makefolder and isfolder and not isfolder(CONFIG_FOLDER) then pcall(makefolder, CONFIG_FOLDER) end end
-local function ser(v)
+local function ser(v, depth)
+    depth = depth or 0
     local t = type(v)
-    if t=="number" or t=="boolean" then return tostring(v)
-    elseif t=="string" then return string.format("%q", v)
-    elseif t=="table" then
-        local parts={"{"}
-        for k,val in pairs(v) do
-            local key=(type(k)=="string" and k:match("^[%a_][%w_]*$")) and k or ("["..ser(k).."]")
-            table.insert(parts, key.."="..ser(val)) end
-        return "{"..table.concat(parts,",").."}"
+    if t == "number" or t == "boolean" then return tostring(v)
+    elseif t == "string" then return string.format("%q", v)
+    elseif t == "table" then
+        local parts = {}
+        for k, val in pairs(v) do
+            local key
+            if type(k) == "string" and k:match("^[%a_][%w_]*$") then
+                key = k
+            else
+                key = "[" .. ser(k, depth+1) .. "]"
+            end
+            table.insert(parts, key .. "=" .. ser(val, depth+1))
+        end
+        return "{" .. table.concat(parts, ",") .. "}"
     elseif typeof then
-        local tt=typeof(v)
-        if tt=="Color3" then return string.format("Color3.fromRGB(%d,%d,%d)",math.floor(v.R*255+.5),math.floor(v.G*255+.5),math.floor(v.B*255+.5)) end
-        if tt=="Vector3" then return string.format("Vector3.new(%f,%f,%f)",v.X,v.Y,v.Z) end end
-    return "nil" end
+        local tt = typeof(v)
+        if tt == "Color3" then
+            return string.format("Color3.fromRGB(%d,%d,%d)",
+                math.floor(v.R*255+.5), math.floor(v.G*255+.5), math.floor(v.B*255+.5))
+        end
+        if tt == "Vector3" then
+            return string.format("Vector3.new(%f,%f,%f)", v.X, v.Y, v.Z)
+        end
+    end
+    return "nil"
+end
 
 local function buildCfg()
     local o={ Characters={}, Global={} }
