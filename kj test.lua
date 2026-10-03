@@ -95,295 +95,8 @@ local LangData = {
         tpWalkToggle="TP Walk", tpWalkSpeed="Скор. TP Walk", noclipToggle="Noclip", infJumpToggle="Беск. прыжок",
         backToMe="✕ Назад", flingList="Список для флинга", antiFling="Анти-флинг", authorsInfo="Авторы",
         autoFlingToggle="Авто-Флинг", ctrlClickTP="Ctrl+Клик ТП", returnToMe="🏠 Ко мне" },
-    es = { title="KJ Test", tabGlobal="⚙", tabChars="🎭", tabPlayers="👥", tabConfigs="💾", tabMovement="🏃", tabAuthors="👤",
-        globalSettings="General", cooldown="CD TP (s)", soundAlert="Sonido", notifications="Avisos", pulseUlt="Pulso ult",
-        enableAll="✓ Todo", disableAll="✕ Nada", colorBase="Base", colorUlt="Ult", highlightBase="Res. base", highlightUlt="Res. ult",
-        showName="Nombre", showHp="HP", tpFromBase="TP base", tpFromUlt="TP ult", distance="Dist", position="Pos TP",
-        teleportNow="TP ya", base="B", ult="U", unknown="?", teleported="¡TP!", pickerTitle="Color",
-        showAllBtn="📢 Nombres", showAllActive="Nombres", espOn="👁 ESP ON", espOff="🚫 ESP OFF",
-        espEnabled="ESP on", espDisabled="ESP off", actions="Acciones", configName="Nombre", saveConfig="💾 Guardar",
-        refreshList="🔄", configsList="Configs", noConfigs="Vacío", configSaved="Guardado: ", configLoaded="Cargado: ",
-        configDeleted="Borrado: ", configError="Error: ", deleteConfig="🗑", loadConfig="📂",
-        hideAllHp="Ocultar HP", hideAllNames="Ocultar nombres", globalToggles="Interruptores", langLabel="Idioma",
-        playerFunctions="Funciones", funFling="Lanzar 1x", funTouchFling="Toque", funTP="TP",
-        funSpectate="Observar", funUnfling="Detener", keybinds="Teclas", bindHide="GUI", bindFling="Lanzar",
-        bindTouch="TouchFling", bindESP="ESP", bindNames="Nombres", autoFlingChar="Auto-lanzar", movement="Movimiento",
-        tpWalkToggle="TP Walk", tpWalkSpeed="Vel. TP Walk", noclipToggle="Noclip", infJumpToggle="Salto infinito",
-        backToMe="✕ Atrás", flingList="Lista lanzar", antiFling="Anti-Lanzar", authorsInfo="Autores",
-        autoFlingToggle="Auto-Lanzar", ctrlClickTP="Ctrl+Click TP", returnToMe="🏠 A mí" },
-    zh = { title="KJ Test", tabGlobal="⚙", tabChars="🎭", tabPlayers="👥", tabConfigs="💾", tabMovement="🏃", tabAuthors="👤",
-        globalSettings="全局", cooldown="TP CD", soundAlert="声音", notifications="通知", pulseUlt="大招脉冲",
-        enableAll="✓ 全部", disableAll="✕ 无", colorBase="基础色", colorUlt="大招色", highlightBase="基础高亮", highlightUlt="大招高亮",
-        showName="名字", showHp="血量", tpFromBase="基础TP", tpFromUlt="大招TP", distance="距离", position="TP位置",
-        teleportNow="立即TP", base="基础", ult="大招", unknown="?", teleported="TP！", pickerTitle="颜色",
-        showAllBtn="📢 名字", showAllActive="显示名字", espOn="👁 ESP 开", espOff="🚫 ESP 关",
-        espEnabled="ESP 开", espDisabled="ESP 关", actions="操作", configName="名字", saveConfig="💾 保存",
-        refreshList="🔄", configsList="配置", noConfigs="空", configSaved="已保存：", configLoaded="已加载：",
-        configDeleted="已删除：", configError="错误：", deleteConfig="🗑", loadConfig="📂",
-        hideAllHp="隐藏血量", hideAllNames="隐藏名字", globalToggles="开关", langLabel="语言",
-        playerFunctions="功能", funFling="抛飞 1x", funTouchFling="触碰抛飞", funTP="TP",
-        funSpectate="观察", funUnfling="停止", keybinds="按键", bindHide="GUI", bindFling="抛飞",
-        bindTouch="触碰", bindESP="ESP", bindNames="名字", autoFlingChar="自动抛飞", movement="移动",
-        tpWalkToggle="TP 行走", tpWalkSpeed="TP 速度", noclipToggle="穿墙", infJumpToggle="无限跳",
-        backToMe="✕ 返回", flingList="抛飞列表", antiFling="反抛飞", authorsInfo="作者",
-        autoFlingToggle="自动抛飞", ctrlClickTP="Ctrl+点击 TP", returnToMe="🏠 归位" },
-    hi = { title="KJ Test", tabGlobal="⚙", tabChars="🎭", tabPlayers="👥", tabConfigs="💾", tabMovement="🏃", tabAuthors="👤",
-        globalSettings="सामान्य", cooldown="TP CD", soundAlert="ध्वनि", notifications="सूचना", pulseUlt="अल्ट पल्स",
-        enableAll="✓ सब", disableAll="✕ कुछ नहीं", colorBase="बेस", colorUlt="अल्ट", highlightBase="बेस HL", highlightUlt="अल्ट HL",
-        showName="नाम", showHp="HP", tpFromBase="बेस TP", tpFromUlt="अल्ट TP", distance="दूरी", position="TP पोज़",
-        teleportNow="अब TP", base="बेस", ult="अल्ट", unknown="?", teleported="TP!", pickerTitle="रंग",
-        showAllBtn="📢 नाम", showAllActive="नाम दिखे", espOn="👁 ESP ON", espOff="🚫 ESP OFF",
-        espEnabled="ESP on", espDisabled="ESP off", actions="क्रियाएँ", configName="नाम", saveConfig="💾 सेव",
-        refreshList="🔄", configsList="कॉन्फ़िग", noConfigs="खाली", configSaved="सेव: ", configLoaded="लोड: ",
-        configDeleted="डिलीट: ", configError="त्रुटि: ", deleteConfig="🗑", loadConfig="📂",
-        hideAllHp="HP छुपाओ", hideAllNames="नाम छुपाओ", globalToggles="टॉगल", langLabel="भाषा",
-        playerFunctions="कार्य", funFling="फ्लिंग 1x", funTouchFling="टच फ्लिंग", funTP="TP",
-        funSpectate="देखो", funUnfling="रोको", keybinds="कीबाइंड", bindHide="GUI", bindFling="फ्लिंग",
-        bindTouch="टच", bindESP="ESP", bindNames="नाम", autoFlingChar="ऑटो फ्लिंग", movement="मूवमेंट",
-        tpWalkToggle="TP वॉक", tpWalkSpeed="TP गति", noclipToggle="नोक्लिप", infJumpToggle="अनंत कूद",
-        backToMe="✕ वापस", flingList="फ्लिंग सूची", antiFling="एंटी-फ्लिंग", authorsInfo="लेखक",
-        autoFlingToggle="ऑटो फ्लिंग", ctrlClickTP="Ctrl+क्लिक TP", returnToMe="🏠 मुझ तक" },
-    ar = { title="KJ Test", tabGlobal="⚙", tabChars="🎭", tabPlayers="👥", tabConfigs="💾", tabMovement="🏃", tabAuthors="👤",
-        globalSettings="عام", cooldown="TP CD", soundAlert="صوت", notifications="إشعارات", pulseUlt="نبض ألتي",
-        enableAll="✓ الكل", disableAll="✕ لا شيء", colorBase="أساسي", colorUlt="ألتي", highlightBase="إبراز أساسي", highlightUlt="إبراز ألتي",
-        showName="اسم", showHp="HP", tpFromBase="TP أساسي", tpFromUlt="TP ألتي", distance="مسافة", position="موضع TP",
-        teleportNow="TP الآن", base="أساسي", ult="ألتي", unknown="?", teleported="TP!", pickerTitle="لون",
-        showAllBtn="📢 أسماء", showAllActive="الأسماء ظاهرة", espOn="👁 ESP ON", espOff="🚫 ESP OFF",
-        espEnabled="ESP on", espDisabled="ESP off", actions="إجراءات", configName="اسم", saveConfig="💾 حفظ",
-        refreshList="🔄", configsList="إعدادات", noConfigs="فارغ", configSaved="حُفظ: ", configLoaded="حُمّل: ",
-        configDeleted="حُذف: ", configError="خطأ: ", deleteConfig="🗑", loadConfig="📂",
-        hideAllHp="إخفاء HP", hideAllNames="إخفاء الأسماء", globalToggles="مفاتيح", langLabel="لغة",
-        playerFunctions="وظائف", funFling="قذف 1x", funTouchFling="قذف لمسي", funTP="TP",
-        funSpectate="مشاهدة", funUnfling="إيقاف", keybinds="اختصارات", bindHide="GUI", bindFling="قذف",
-        bindTouch="لمس", bindESP="ESP", bindNames="أسماء", autoFlingChar="قذف تلقائي", movement="حركة",
-        tpWalkToggle="TP مشي", tpWalkSpeed="سرعة TP", noclipToggle="Noclip", infJumpToggle="قفز لانهائي",
-        backToMe="✕ رجوع", flingList="قائمة القذف", antiFling="مضاد القذف", authorsInfo="المؤلفون",
-        autoFlingToggle="قذف تلقائي", ctrlClickTP="Ctrl+نقر TP", returnToMe="🏠 إلي" },
-    pt = { title="KJ Test", tabGlobal="⚙", tabChars="🎭", tabPlayers="👥", tabConfigs="💾", tabMovement="🏃", tabAuthors="👤",
-        globalSettings="Geral", cooldown="CD TP (s)", soundAlert="Som", notifications="Avisos", pulseUlt="Pulso ult",
-        enableAll="✓ Tudo", disableAll="✕ Nada", colorBase="Base", colorUlt="Ult", highlightBase="Dest. base", highlightUlt="Dest. ult",
-        showName="Nome", showHp="HP", tpFromBase="TP base", tpFromUlt="TP ult", distance="Dist", position="Pos TP",
-        teleportNow="TP já", base="B", ult="U", unknown="?", teleported="TP!", pickerTitle="Cor",
-        showAllBtn="📢 Nomes", showAllActive="Nomes", espOn="👁 ESP ON", espOff="🚫 ESP OFF",
-        espEnabled="ESP on", espDisabled="ESP off", actions="Ações", configName="Nome", saveConfig="💾 Salvar",
-        refreshList="🔄", configsList="Configs", noConfigs="Vazio", configSaved="Salvo: ", configLoaded="Carregado: ",
-        configDeleted="Apagado: ", configError="Erro: ", deleteConfig="🗑", loadConfig="📂",
-        hideAllHp="Esconder HP", hideAllNames="Esconder nomes", globalToggles="Chaves", langLabel="Idioma",
-        playerFunctions="Funções", funFling="Arremessar 1x", funTouchFling="Toque", funTP="TP",
-        funSpectate="Observar", funUnfling="Parar", keybinds="Teclas", bindHide="GUI", bindFling="Arremessar",
-        bindTouch="Toque", bindESP="ESP", bindNames="Nomes", autoFlingChar="Auto-arremessar", movement="Movimento",
-        tpWalkToggle="TP Walk", tpWalkSpeed="Vel TP Walk", noclipToggle="Noclip", infJumpToggle="Pulo infinito",
-        backToMe="✕ Voltar", flingList="Lista arremessar", antiFling="Anti-Arremessar", authorsInfo="Autores",
-        autoFlingToggle="Auto-Arremessar", ctrlClickTP="Ctrl+Clique TP", returnToMe="🏠 Eu" },
-    bn = { title="KJ Test", tabGlobal="⚙", tabChars="🎭", tabPlayers="👥", tabConfigs="💾", tabMovement="🏃", tabAuthors="👤",
-        globalSettings="সাধারণ", cooldown="TP CD", soundAlert="শব্দ", notifications="বিজ্ঞপ্তি", pulseUlt="আল্ট পালস",
-        enableAll="✓ সব", disableAll="✕ কিছু না", colorBase="বেস", colorUlt="আল্ট", highlightBase="বেস HL", highlightUlt="আল্ট HL",
-        showName="নাম", showHp="HP", tpFromBase="বেস TP", tpFromUlt="আল্ট TP", distance="দূরত্ব", position="TP পজ",
-        teleportNow="এখন TP", base="বেস", ult="আল্ট", unknown="?", teleported="TP!", pickerTitle="রঙ",
-        showAllBtn="📢 নাম", showAllActive="নাম দেখাচ্ছে", espOn="👁 ESP ON", espOff="🚫 ESP OFF",
-        espEnabled="ESP on", espDisabled="ESP off", actions="কাজ", configName="নাম", saveConfig="💾 সংরক্ষণ",
-        refreshList="🔄", configsList="কনফিগ", noConfigs="খালি", configSaved="সেভ: ", configLoaded="লোড: ",
-        configDeleted="মুছে: ", configError="ত্রুটি: ", deleteConfig="🗑", loadConfig="📂",
-        hideAllHp="HP লুকাও", hideAllNames="নাম লুকাও", globalToggles="টগল", langLabel="ভাষা",
-        playerFunctions="ফাংশন", funFling="ফ্লিং 1x", funTouchFling="টাচ ফ্লিং", funTP="TP",
-        funSpectate="দেখো", funUnfling="থামাও", keybinds="কীবাইন্ড", bindHide="GUI", bindFling="ফ্লিং",
-        bindTouch="টাচ", bindESP="ESP", bindNames="নাম", autoFlingChar="অটো ফ্লিং", movement="মুভমেন্ট",
-        tpWalkToggle="TP ওয়াক", tpWalkSpeed="TP গতি", noclipToggle="নোক্লিপ", infJumpToggle="অসীম লাফ",
-        backToMe="✕ ফিরে", flingList="ফ্লিং তালিকা", antiFling="অ্যান্টি-ফ্লিং", authorsInfo="লেখক",
-        autoFlingToggle="অটো ফ্লিং", ctrlClickTP="Ctrl+ক্লিক TP", returnToMe="🏠 আমার কাছে" },
-    ja = { title="KJ Test", tabGlobal="⚙", tabChars="🎭", tabPlayers="👥", tabConfigs="💾", tabMovement="🏃", tabAuthors="👤",
-        globalSettings="一般", cooldown="TP CD", soundAlert="音", notifications="通知", pulseUlt="ウルトパルス",
-        enableAll="✓ 全部", disableAll="✕ なし", colorBase="ベース", colorUlt="ウルト", highlightBase="HLベース", highlightUlt="HLウルト",
-        showName="名前", showHp="HP", tpFromBase="TPベース", tpFromUlt="TPウルト", distance="距離", position="TP位置",
-        teleportNow="今TP", base="ベース", ult="ウルト", unknown="?", teleported="TP!", pickerTitle="色",
-        showAllBtn="📢 名前", showAllActive="名前表示", espOn="👁 ESP ON", espOff="🚫 ESP OFF",
-        espEnabled="ESP on", espDisabled="ESP off", actions="アクション", configName="名前", saveConfig="💾 保存",
-        refreshList="🔄", configsList="設定", noConfigs="空", configSaved="保存: ", configLoaded="読込: ",
-        configDeleted="削除: ", configError="エラー: ", deleteConfig="🗑", loadConfig="📂",
-        hideAllHp="HP隠す", hideAllNames="名前隠す", globalToggles="切替", langLabel="言語",
-        playerFunctions="機能", funFling="投げ 1x", funTouchFling="タッチ投げ", funTP="TP",
-        funSpectate="観戦", funUnfling="停止", keybinds="キーバインド", bindHide="GUI", bindFling="投げ",
-        bindTouch="タッチ", bindESP="ESP", bindNames="名前", autoFlingChar="自動投げ", movement="移動",
-        tpWalkToggle="TP歩行", tpWalkSpeed="TP速度", noclipToggle="Noclip", infJumpToggle="無限ジャンプ",
-        backToMe="✕ 戻る", flingList="投げリスト", antiFling="アンチ投げ", authorsInfo="作者",
-        autoFlingToggle="自動投げ", ctrlClickTP="Ctrl+クリック TP", returnToMe="🏠 戻る" },
-    de = { title="KJ Test", tabGlobal="⚙", tabChars="🎭", tabPlayers="👥", tabConfigs="💾", tabMovement="🏃", tabAuthors="👤",
-        globalSettings="Allgemein", cooldown="TP CD (s)", soundAlert="Ton", notifications="Benachr.", pulseUlt="Ult Puls",
-        enableAll="✓ Alle", disableAll="✕ Keine", colorBase="Basis", colorUlt="Ult", highlightBase="Basis HL", highlightUlt="Ult HL",
-        showName="Name", showHp="HP", tpFromBase="TP Basis", tpFromUlt="TP Ult", distance="Dist", position="TP Pos",
-        teleportNow="TP jetzt", base="B", ult="U", unknown="?", teleported="TP!", pickerTitle="Farbe",
-        showAllBtn="📢 Namen", showAllActive="Namen", espOn="👁 ESP AN", espOff="🚫 ESP AUS",
-        espEnabled="ESP an", espDisabled="ESP aus", actions="Aktionen", configName="Name", saveConfig="💾 Speichern",
-        refreshList="🔄", configsList="Configs", noConfigs="Leer", configSaved="Gespeichert: ", configLoaded="Geladen: ",
-        configDeleted="Gelöscht: ", configError="Fehler: ", deleteConfig="🗑", loadConfig="📂",
-        hideAllHp="Alle HP verstecken", hideAllNames="Alle Namen verstecken", globalToggles="Schalter", langLabel="Sprache",
-        playerFunctions="Funktionen", funFling="Schleudern 1x", funTouchFling="Berührung", funTP="TP",
-        funSpectate="Beobachten", funUnfling="Stopp", keybinds="Tasten", bindHide="GUI", bindFling="Schleudern",
-        bindTouch="Berührung", bindESP="ESP", bindNames="Namen", autoFlingChar="Auto-Schleudern", movement="Bewegung",
-        tpWalkToggle="TP Gehen", tpWalkSpeed="TP Geschw.", noclipToggle="Noclip", infJumpToggle="Unendlich Sprung",
-        backToMe="✕ Zurück", flingList="Schleuderliste", antiFling="Anti-Schleudern", authorsInfo="Autoren",
-        autoFlingToggle="Auto-Schleudern", ctrlClickTP="Ctrl+Klick TP", returnToMe="🏠 Zu mir" },
-    fr = { title="KJ Test", tabGlobal="⚙", tabChars="🎭", tabPlayers="👥", tabConfigs="💾", tabMovement="🏃", tabAuthors="👤",
-        globalSettings="Général", cooldown="CD TP (s)", soundAlert="Son", notifications="Notifs", pulseUlt="Pulse ult",
-        enableAll="✓ Tout", disableAll="✕ Rien", colorBase="Base", colorUlt="Ult", highlightBase="Surbr. base", highlightUlt="Surbr. ult",
-        showName="Nom", showHp="HP", tpFromBase="TP base", tpFromUlt="TP ult", distance="Dist", position="Pos TP",
-        teleportNow="TP maintenant", base="B", ult="U", unknown="?", teleported="TP!", pickerTitle="Couleur",
-        showAllBtn="📢 Noms", showAllActive="Noms affichés", espOn="👁 ESP ON", espOff="🚫 ESP OFF",
-        espEnabled="ESP on", espDisabled="ESP off", actions="Actions", configName="Nom", saveConfig="💾 Sauver",
-        refreshList="🔄", configsList="Configs", noConfigs="Vide", configSaved="Sauvé: ", configLoaded="Chargé: ",
-        configDeleted="Supprimé: ", configError="Err: ", deleteConfig="🗑", loadConfig="📂",
-        hideAllHp="Cacher HP", hideAllNames="Cacher noms", globalToggles="Interrupteurs", langLabel="Langue",
-        playerFunctions="Fonctions", funFling="Lancer 1x", funTouchFling="Toucher", funTP="TP",
-        funSpectate="Observer", funUnfling="Arrêter", keybinds="Touches", bindHide="GUI", bindFling="Lancer",
-        bindTouch="Toucher", bindESP="ESP", bindNames="Noms", autoFlingChar="Auto-lancer", movement="Mouvement",
-        tpWalkToggle="TP Marche", tpWalkSpeed="Vit. TP", noclipToggle="Noclip", infJumpToggle="Saut infini",
-        backToMe="✕ Retour", flingList="Liste lancer", antiFling="Anti-Lancer", authorsInfo="Auteurs",
-        autoFlingToggle="Auto-Lancer", ctrlClickTP="Ctrl+Clic TP", returnToMe="🏠 Moi" },
-    ko = { title="KJ Test", tabGlobal="⚙", tabChars="🎭", tabPlayers="👥", tabConfigs="💾", tabMovement="🏃", tabAuthors="👤",
-        globalSettings="일반", cooldown="TP CD", soundAlert="소리", notifications="알림", pulseUlt="울트 펄스",
-        enableAll="✓ 전부", disableAll="✕ 없음", colorBase="기본", colorUlt="울트", highlightBase="HL 기본", highlightUlt="HL 울트",
-        showName="이름", showHp="HP", tpFromBase="TP 기본", tpFromUlt="TP 울트", distance="거리", position="TP 위치",
-        teleportNow="지금 TP", base="기본", ult="울트", unknown="?", teleported="TP!", pickerTitle="색",
-        showAllBtn="📢 이름", showAllActive="이름 표시", espOn="👁 ESP ON", espOff="🚫 ESP OFF",
-        espEnabled="ESP on", espDisabled="ESP off", actions="동작", configName="이름", saveConfig="💾 저장",
-        refreshList="🔄", configsList="설정", noConfigs="비어있음", configSaved="저장: ", configLoaded="로드: ",
-        configDeleted="삭제: ", configError="오류: ", deleteConfig="🗑", loadConfig="📂",
-        hideAllHp="HP 숨기기", hideAllNames="이름 숨기기", globalToggles="토글", langLabel="언어",
-        playerFunctions="기능", funFling="날리기 1x", funTouchFling="터치 날리기", funTP="TP",
-        funSpectate="관전", funUnfling="중지", keybinds="키바인드", bindHide="GUI", bindFling="날리기",
-        bindTouch="터치", bindESP="ESP", bindNames="이름", autoFlingChar="자동 날리기", movement="이동",
-        tpWalkToggle="TP 걷기", tpWalkSpeed="TP 속도", noclipToggle="Noclip", infJumpToggle="무한 점프",
-        backToMe="✕ 뒤로", flingList="날리기 목록", antiFling="안티 날리기", authorsInfo="저자",
-        autoFlingToggle="자동 날리기", ctrlClickTP="Ctrl+클릭 TP", returnToMe="🏠 나에게" },
-    it = { title="KJ Test", tabGlobal="⚙", tabChars="🎭", tabPlayers="👥", tabConfigs="💾", tabMovement="🏃", tabAuthors="👤",
-        globalSettings="Generale", cooldown="CD TP (s)", soundAlert="Suono", notifications="Notifiche", pulseUlt="Pulse ult",
-        enableAll="✓ Tutto", disableAll="✕ Niente", colorBase="Base", colorUlt="Ult", highlightBase="Evid. base", highlightUlt="Evid. ult",
-        showName="Nome", showHp="HP", tpFromBase="TP base", tpFromUlt="TP ult", distance="Dist", position="Pos TP",
-        teleportNow="TP ora", base="B", ult="U", unknown="?", teleported="TP!", pickerTitle="Colore",
-        showAllBtn="📢 Nomi", showAllActive="Nomi", espOn="👁 ESP ON", espOff="🚫 ESP OFF",
-        espEnabled="ESP on", espDisabled="ESP off", actions="Azioni", configName="Nome", saveConfig="💾 Salva",
-        refreshList="🔄", configsList="Config", noConfigs="Vuoto", configSaved="Salvato: ", configLoaded="Caricato: ",
-        configDeleted="Eliminato: ", configError="Err: ", deleteConfig="🗑", loadConfig="📂",
-        hideAllHp="Nascondi HP", hideAllNames="Nascondi nomi", globalToggles="Interruttori", langLabel="Lingua",
-        playerFunctions="Funzioni", funFling="Lancia 1x", funTouchFling="Tocco", funTP="TP",
-        funSpectate="Osserva", funUnfling="Stop", keybinds="Tasti", bindHide="GUI", bindFling="Lancia",
-        bindTouch="Tocco", bindESP="ESP", bindNames="Nomi", autoFlingChar="Auto-lancia", movement="Movimento",
-        tpWalkToggle="TP Cammina", tpWalkSpeed="Vel TP", noclipToggle="Noclip", infJumpToggle="Salto infinito",
-        backToMe="✕ Indietro", flingList="Lista lancia", antiFling="Anti-Lancia", authorsInfo="Autori",
-        autoFlingToggle="Auto-Lancia", ctrlClickTP="Ctrl+Click TP", returnToMe="🏠 A me" },
-    tr = { title="KJ Test", tabGlobal="⚙", tabChars="🎭", tabPlayers="👥", tabConfigs="💾", tabMovement="🏃", tabAuthors="👤",
-        globalSettings="Genel", cooldown="TP CD (s)", soundAlert="Ses", notifications="Bildirim", pulseUlt="Ult Nabız",
-        enableAll="✓ Hepsi", disableAll="✕ Hiçbiri", colorBase="Temel", colorUlt="Ult", highlightBase="HL Temel", highlightUlt="HL Ult",
-        showName="İsim", showHp="HP", tpFromBase="TP Temel", tpFromUlt="TP Ult", distance="Mesafe", position="TP Konum",
-        teleportNow="Şimdi TP", base="T", ult="U", unknown="?", teleported="TP!", pickerTitle="Renk",
-        showAllBtn="📢 İsimler", showAllActive="İsimler", espOn="👁 ESP AÇ", espOff="🚫 ESP KAPA",
-        espEnabled="ESP açık", espDisabled="ESP kapalı", actions="Eylemler", configName="İsim", saveConfig="💾 Kaydet",
-        refreshList="🔄", configsList="Ayarlar", noConfigs="Boş", configSaved="Kaydedildi: ", configLoaded="Yüklendi: ",
-        configDeleted="Silindi: ", configError="Hata: ", deleteConfig="🗑", loadConfig="📂",
-        hideAllHp="Tüm HP gizle", hideAllNames="Tüm isimleri gizle", globalToggles="Anahtarlar", langLabel="Dil",
-        playerFunctions="İşlevler", funFling="Fırlat 1x", funTouchFling="Dokunma", funTP="TP",
-        funSpectate="İzle", funUnfling="Durdur", keybinds="Tuşlar", bindHide="GUI", bindFling="Fırlat",
-        bindTouch="Dokunma", bindESP="ESP", bindNames="İsimler", autoFlingChar="Oto-fırlat", movement="Hareket",
-        tpWalkToggle="TP Yürü", tpWalkSpeed="TP Hızı", noclipToggle="Noclip", infJumpToggle="Sonsuz Zıpla",
-        backToMe="✕ Geri", flingList="Fırlat listesi", antiFling="Anti-Fırlat", authorsInfo="Yazarlar",
-        autoFlingToggle="Oto-Fırlat", ctrlClickTP="Ctrl+Tık TP", returnToMe="🏠 Bana" },
-    vi = { title="KJ Test", tabGlobal="⚙", tabChars="🎭", tabPlayers="👥", tabConfigs="💾", tabMovement="🏃", tabAuthors="👤",
-        globalSettings="Chung", cooldown="TP CD (s)", soundAlert="Âm", notifications="Thông báo", pulseUlt="Xung ult",
-        enableAll="✓ Tất cả", disableAll="✕ Không", colorBase="Cơ bản", colorUlt="Ult", highlightBase="HL cơ bản", highlightUlt="HL ult",
-        showName="Tên", showHp="HP", tpFromBase="TP cơ bản", tpFromUlt="TP ult", distance="KC", position="Vị trí TP",
-        teleportNow="TP ngay", base="CB", ult="Ult", unknown="?", teleported="TP!", pickerTitle="Màu",
-        showAllBtn="📢 Tên", showAllActive="Đang hiện tên", espOn="👁 ESP ON", espOff="🚫 ESP OFF",
-        espEnabled="ESP on", espDisabled="ESP off", actions="Hành động", configName="Tên", saveConfig="💾 Lưu",
-        refreshList="🔄", configsList="Cấu hình", noConfigs="Trống", configSaved="Đã lưu: ", configLoaded="Đã tải: ",
-        configDeleted="Đã xoá: ", configError="Lỗi: ", deleteConfig="🗑", loadConfig="📂",
-        hideAllHp="Ẩn tất cả HP", hideAllNames="Ẩn tất cả tên", globalToggles="Công tắc", langLabel="Ngôn ngữ",
-        playerFunctions="Chức năng", funFling="Ném 1x", funTouchFling="Ném chạm", funTP="TP",
-        funSpectate="Xem", funUnfling="Dừng", keybinds="Phím", bindHide="GUI", bindFling="Ném",
-        bindTouch="Chạm", bindESP="ESP", bindNames="Tên", autoFlingChar="Tự ném", movement="Di chuyển",
-        tpWalkToggle="TP Đi bộ", tpWalkSpeed="Tốc độ TP", noclipToggle="Noclip", infJumpToggle="Nhảy vô hạn",
-        backToMe="✕ Quay lại", flingList="DS ném", antiFling="Chống ném", authorsInfo="Tác giả",
-        autoFlingToggle="Tự ném", ctrlClickTP="Ctrl+Click TP", returnToMe="🏠 Về tôi" },
-    pl = { title="KJ Test", tabGlobal="⚙", tabChars="🎭", tabPlayers="👥", tabConfigs="💾", tabMovement="🏃", tabAuthors="👤",
-        globalSettings="Ogólne", cooldown="CD TP (s)", soundAlert="Dźwięk", notifications="Powiadom.", pulseUlt="Puls ult",
-        enableAll="✓ Wszystko", disableAll="✕ Nic", colorBase="Baza", colorUlt="Ult", highlightBase="Podś. bazy", highlightUlt="Podś. ult",
-        showName="Imię", showHp="HP", tpFromBase="TP baza", tpFromUlt="TP ult", distance="Dyst", position="Poz TP",
-        teleportNow="TP teraz", base="B", ult="U", unknown="?", teleported="TP!", pickerTitle="Kolor",
-        showAllBtn="📢 Imiona", showAllActive="Imiona", espOn="👁 ESP ON", espOff="🚫 ESP OFF",
-        espEnabled="ESP on", espDisabled="ESP off", actions="Akcje", configName="Nazwa", saveConfig="💾 Zapisz",
-        refreshList="🔄", configsList="Configi", noConfigs="Puste", configSaved="Zapisano: ", configLoaded="Załadowano: ",
-        configDeleted="Usunięto: ", configError="Błąd: ", deleteConfig="🗑", loadConfig="📂",
-        hideAllHp="Ukryj HP", hideAllNames="Ukryj imiona", globalToggles="Przełączniki", langLabel="Język",
-        playerFunctions="Funkcje", funFling="Rzut 1x", funTouchFling="Dotyk", funTP="TP",
-        funSpectate="Obserwuj", funUnfling="Stop", keybinds="Klawisze", bindHide="GUI", bindFling="Rzut",
-        bindTouch="Dotyk", bindESP="ESP", bindNames="Imiona", autoFlingChar="Auto-rzut", movement="Ruch",
-        tpWalkToggle="TP Chód", tpWalkSpeed="Pręd. TP", noclipToggle="Noclip", infJumpToggle="Nieskoń. skok",
-        backToMe="✕ Wstecz", flingList="Lista rzutu", antiFling="Anti-Rzut", authorsInfo="Autorzy",
-        autoFlingToggle="Auto-Rzut", ctrlClickTP="Ctrl+Click TP", returnToMe="🏠 Do mnie" },
-    nl = { title="KJ Test", tabGlobal="⚙", tabChars="🎭", tabPlayers="👥", tabConfigs="💾", tabMovement="🏃", tabAuthors="👤",
-        globalSettings="Algemeen", cooldown="TP CD (s)", soundAlert="Geluid", notifications="Meldingen", pulseUlt="Ult Puls",
-        enableAll="✓ Alles", disableAll="✕ Niets", colorBase="Basis", colorUlt="Ult", highlightBase="HL basis", highlightUlt="HL ult",
-        showName="Naam", showHp="HP", tpFromBase="TP basis", tpFromUlt="TP ult", distance="Afst", position="TP Pos",
-        teleportNow="TP nu", base="B", ult="U", unknown="?", teleported="TP!", pickerTitle="Kleur",
-        showAllBtn="📢 Namen", showAllActive="Namen", espOn="👁 ESP AAN", espOff="🚫 ESP UIT",
-        espEnabled="ESP aan", espDisabled="ESP uit", actions="Acties", configName="Naam", saveConfig="💾 Opslaan",
-        refreshList="🔄", configsList="Configs", noConfigs="Leeg", configSaved="Opgeslagen: ", configLoaded="Geladen: ",
-        configDeleted="Verwijderd: ", configError="Fout: ", deleteConfig="🗑", loadConfig="📂",
-        hideAllHp="Alle HP verbergen", hideAllNames="Alle namen verbergen", globalToggles="Schakelaars", langLabel="Taal",
-        playerFunctions="Functies", funFling="Slingeren 1x", funTouchFling="Aanraking", funTP="TP",
-        funSpectate="Toeschouwen", funUnfling="Stop", keybinds="Toetsen", bindHide="GUI", bindFling="Slingeren",
-        bindTouch="Aanraking", bindESP="ESP", bindNames="Namen", autoFlingChar="Auto-slingeren", movement="Beweging",
-        tpWalkToggle="TP Lopen", tpWalkSpeed="TP Snelh.", noclipToggle="Noclip", infJumpToggle="Oneindig springen",
-        backToMe="✕ Terug", flingList="Slingerlijst", antiFling="Anti-Slingeren", authorsInfo="Auteurs",
-        autoFlingToggle="Auto-Slingeren", ctrlClickTP="Ctrl+Klik TP", returnToMe="🏠 Naar mij" },
-    th = { title="KJ Test", tabGlobal="⚙", tabChars="🎭", tabPlayers="👥", tabConfigs="💾", tabMovement="🏃", tabAuthors="👤",
-        globalSettings="ทั่วไป", cooldown="TP CD", soundAlert="เสียง", notifications="แจ้งเตือน", pulseUlt="อัลท์พัลส์",
-        enableAll="✓ ทั้งหมด", disableAll="✕ ไม่มี", colorBase="พื้นฐาน", colorUlt="อัลท์", highlightBase="HL พื้น", highlightUlt="HL อัลท์",
-        showName="ชื่อ", showHp="HP", tpFromBase="TP พื้น", tpFromUlt="TP อัลท์", distance="ระยะ", position="ตำแหน่ง TP",
-        teleportNow="TP เลย", base="พ", ult="อ", unknown="?", teleported="TP!", pickerTitle="สี",
-        showAllBtn="📢 ชื่อ", showAllActive="แสดงชื่อ", espOn="👁 ESP ON", espOff="🚫 ESP OFF",
-        espEnabled="ESP on", espDisabled="ESP off", actions="การกระทำ", configName="ชื่อ", saveConfig="💾 บันทึก",
-        refreshList="🔄", configsList="การตั้งค่า", noConfigs="ว่าง", configSaved="บันทึก: ", configLoaded="โหลด: ",
-        configDeleted="ลบ: ", configError="ผิดพลาด: ", deleteConfig="🗑", loadConfig="📂",
-        hideAllHp="ซ่อน HP", hideAllNames="ซ่อนชื่อ", globalToggles="สวิตช์", langLabel="ภาษา",
-        playerFunctions="ฟังก์ชั่น", funFling="เหวี่ยง 1x", funTouchFling="แตะ", funTP="TP",
-        funSpectate="ดู", funUnfling="หยุด", keybinds="ปุ่ม", bindHide="GUI", bindFling="เหวี่ยง",
-        bindTouch="แตะ", bindESP="ESP", bindNames="ชื่อ", autoFlingChar="อัตโนมัติ", movement="การเคลื่อนไหว",
-        tpWalkToggle="TP เดิน", tpWalkSpeed="ความเร็ว TP", noclipToggle="Noclip", infJumpToggle="กระโดดไม่จำกัด",
-        backToMe="✕ กลับ", flingList="รายการเหวี่ยง", antiFling="ต้านเหวี่ยง", authorsInfo="ผู้เขียน",
-        autoFlingToggle="อัตโนมัติ", ctrlClickTP="Ctrl+คลิก TP", returnToMe="🏠 มาหาฉัน" },
-    id = { title="KJ Test", tabGlobal="⚙", tabChars="🎭", tabPlayers="👥", tabConfigs="💾", tabMovement="🏃", tabAuthors="👤",
-        globalSettings="Umum", cooldown="CD TP (s)", soundAlert="Suara", notifications="Notif", pulseUlt="Pulsa ult",
-        enableAll="✓ Semua", disableAll="✕ Tidak", colorBase="Basis", colorUlt="Ult", highlightBase="HL basis", highlightUlt="HL ult",
-        showName="Nama", showHp="HP", tpFromBase="TP basis", tpFromUlt="TP ult", distance="Jarak", position="Pos TP",
-        teleportNow="TP sekarang", base="B", ult="U", unknown="?", teleported="TP!", pickerTitle="Warna",
-        showAllBtn="📢 Nama", showAllActive="Nama tampil", espOn="👁 ESP ON", espOff="🚫 ESP OFF",
-        espEnabled="ESP on", espDisabled="ESP off", actions="Aksi", configName="Nama", saveConfig="💾 Simpan",
-        refreshList="🔄", configsList="Config", noConfigs="Kosong", configSaved="Tersimpan: ", configLoaded="Dimuat: ",
-        configDeleted="Dihapus: ", configError="Error: ", deleteConfig="🗑", loadConfig="📂",
-        hideAllHp="Sembunyikan HP", hideAllNames="Sembunyikan nama", globalToggles="Sakelar", langLabel="Bahasa",
-        playerFunctions="Fungsi", funFling="Lempar 1x", funTouchFling="Sentuh", funTP="TP",
-        funSpectate="Tonton", funUnfling="Stop", keybinds="Keybind", bindHide="GUI", bindFling="Lempar",
-        bindTouch="Sentuh", bindESP="ESP", bindNames="Nama", autoFlingChar="Auto-lempar", movement="Gerakan",
-        tpWalkToggle="TP Jalan", tpWalkSpeed="Kecepatan TP", noclipToggle="Noclip", infJumpToggle="Lompat tak terbatas",
-        backToMe="✕ Kembali", flingList="Daftar lempar", antiFling="Anti-Lempar", authorsInfo="Penulis",
-        autoFlingToggle="Auto-Lempar", ctrlClickTP="Ctrl+Klik TP", returnToMe="🏠 Ke saya" },
-    uk = { title="KJ Test", tabGlobal="⚙", tabChars="🎭", tabPlayers="👥", tabConfigs="💾", tabMovement="🏃", tabAuthors="👤",
-        globalSettings="Загальні", cooldown="КД ТП (с)", soundAlert="Звук", notifications="Сповіщ.", pulseUlt="Пульс ульти",
-        enableAll="✓ Все", disableAll="✕ Нічого", colorBase="База", colorUlt="Ульта", highlightBase="Підсв. база", highlightUlt="Підсв. ульта",
-        showName="Ім'я", showHp="HP", tpFromBase="ТП база", tpFromUlt="ТП ульта", distance="Дист", position="Поз ТП",
-        teleportNow="ТП сюди", base="Б", ult="У", unknown="?", teleported="ТП!", pickerTitle="Колір",
-        showAllBtn="📢 Імена", showAllActive="Імена", espOn="👁 ESP УВІМК", espOff="🚫 ESP ВИКЛ",
-        espEnabled="ESP увімк", espDisabled="ESP викл", actions="Дії", configName="Ім'я", saveConfig="💾 Зберегти",
-        refreshList="🔄", configsList="Конфіги", noConfigs="Порожньо", configSaved="Збережено: ", configLoaded="Завантажено: ",
-        configDeleted="Видалено: ", configError="Помилка: ", deleteConfig="🗑", loadConfig="📂",
-        hideAllHp="Сховати HP", hideAllNames="Сховати імена", globalToggles="Перемикачі", langLabel="Мова",
-        playerFunctions="Функції", funFling="Флинг 1х", funTouchFling="Дотик", funTP="ТП",
-        funSpectate="Спостерігати", funUnfling="Стоп", keybinds="Бінди", bindHide="GUI", bindFling="Флинг",
-        bindTouch="Дотик", bindESP="ESP", bindNames="Імена", autoFlingChar="Авто-флинг", movement="Рух",
-        tpWalkToggle="TP Walk", tpWalkSpeed="Швидк. TP Walk", noclipToggle="Noclip", infJumpToggle="Безкін. стрибок",
-        backToMe="✕ Назад", flingList="Список флингу", antiFling="Анти-флинг", authorsInfo="Автори",
-        autoFlingToggle="Авто-Флинг", ctrlClickTP="Ctrl+Клік TP", returnToMe="🏠 До мене" },
 }
+
 local CurrentLang = "ru"
 local function tr(k) local d=LangData[CurrentLang]; if d and d[k] then return d[k] end; return LangData.en[k] or k end
 
@@ -913,12 +626,12 @@ RunService.Heartbeat:Connect(function(dt)
                 local d=Characters[ck]; local mt=d and d.ultMemoryTime or 0
                 if mt>0 and lastUlt>0 and (tick()-lastUlt)<mt then fm="ult" end end
             playerData[plr] = ck and {charKey=ck, form=fm, lastUltTime=lastUlt} or nil
-                        if GlobalConfig.autoFlingEnabled and GlobalConfig.autoFlingChar ~= "" then
+            if GlobalConfig.autoFlingEnabled and GlobalConfig.autoFlingChar ~= "" then
                 local matched = false
                 if ck and ck == GlobalConfig.autoFlingChar then matched = true
                 elseif plr.Name:lower() == GlobalConfig.autoFlingChar:lower() then matched = true
                 elseif plr.Name:lower():sub(1, #GlobalConfig.autoFlingChar) == GlobalConfig.autoFlingChar:lower() then matched = true end
-                                if matched and not isAntiFling(plr, ck) and not FlingTargets[plr.Name] then
+                if matched and not isAntiFling(plr, ck) and not FlingTargets[plr.Name] then
                     singleFling(plr)
                 end
             end
@@ -939,7 +652,7 @@ RunService.Heartbeat:Connect(function(dt)
                 highlights[plr].instance.FillTransparency=GlobalConfig.fillTransparency+pulse
             elseif highlights[plr] then
                 highlights[plr].instance.FillTransparency=GlobalConfig.fillTransparency end
-            if myRoot and GlobalConfig.espEnabled then
+            if myRoot then
                 local tpEn = (fm=="ult") and d.tpFromUlt or d.tpFromBase
                 if tpEn then
                     local tr = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
@@ -960,6 +673,7 @@ end)
 local CONFIG_FOLDER = "KJTest_Configs"
 local function ensureFolder()
     if makefolder and isfolder and not isfolder(CONFIG_FOLDER) then pcall(makefolder, CONFIG_FOLDER) end end
+
 local function ser(v, depth)
     depth = depth or 0
     local t = type(v)
@@ -998,6 +712,10 @@ local function buildCfg()
             showName=d.showName, showHp=d.showHp,
             tpFromBase=d.tpFromBase, tpFromUlt=d.tpFromUlt,
             distance=d.distance, position=d.position } end
+    local keybindsOut = {}
+    for k, v in pairs(GlobalConfig.keybinds) do
+        keybindsOut[k] = v.Name
+    end
     o.Global={ cooldown=GlobalConfig.cooldown, soundAlert=GlobalConfig.soundAlert,
         notifications=GlobalConfig.notifications, pulseUlt=GlobalConfig.pulseUlt,
         espEnabled=GlobalConfig.espEnabled, fillTransparency=GlobalConfig.fillTransparency,
@@ -1007,7 +725,8 @@ local function buildCfg()
         antiFlingChars=GlobalConfig.antiFlingChars,
         antiFlingPlayers=GlobalConfig.antiFlingPlayers,
         autoFlingChar=GlobalConfig.autoFlingChar,
-        autoFlingEnabled=GlobalConfig.autoFlingEnabled }
+        autoFlingEnabled=GlobalConfig.autoFlingEnabled,
+        keybinds=keybindsOut }
     return o end
 
 local function applyCfg(cfg)
@@ -1016,7 +735,22 @@ local function applyCfg(cfg)
         for k,s in pairs(cfg.Characters) do
             local d=Characters[k]
             if d then for f,v in pairs(s) do d[f]=v end end end end
-    if cfg.Global then for k,v in pairs(cfg.Global) do GlobalConfig[k]=v end end end
+    if cfg.Global then
+        for k,v in pairs(cfg.Global) do
+            if k == "keybinds" and type(v) == "table" then
+                for bindName, keyName in pairs(v) do
+                    if GlobalConfig.keybinds[bindName] and type(keyName) == "string" then
+                        pcall(function()
+                            GlobalConfig.keybinds[bindName] = Enum.KeyCode[keyName]
+                        end)
+                    end
+                end
+            else
+                GlobalConfig[k] = v
+            end
+        end
+    end
+end
 
 local function saveCfg(name)
     ensureFolder()
@@ -1666,7 +1400,7 @@ local function buildGUI()
                 if not plr.Parent then e.row:Destroy(); flingRows[plr]=nil end end
             for plr in pairs(tracked) do ensureFlingRow(plr) end end end)
 
-            makeSection(globalPage, tr("antiFling"), nO())
+    makeSection(globalPage, tr("antiFling"), nO())
 
     local noCollideConn = nil
 
@@ -1723,74 +1457,6 @@ local function buildGUI()
         toggleNoPlayerCollide(v)
     end)
 
-    local antiCharsHolder = Instance.new("Frame")
-    antiCharsHolder.Size = UDim2.new(1,0,0,0); antiCharsHolder.AutomaticSize = Enum.AutomaticSize.Y
-    antiCharsHolder.BackgroundTransparency = 1
-    antiCharsHolder.LayoutOrder = nO(); antiCharsHolder.Parent = globalPage
-    local ach = Instance.new("UIListLayout"); ach.Padding = UDim.new(0,4)
-    ach.SortOrder = Enum.SortOrder.LayoutOrder; ach.Parent = antiCharsHolder
-
-    local antiPlayersHolder = Instance.new("Frame")
-    antiPlayersHolder.Size = UDim2.new(1,0,0,0); antiPlayersHolder.AutomaticSize = Enum.AutomaticSize.Y
-    antiPlayersHolder.BackgroundTransparency = 1
-    antiPlayersHolder.LayoutOrder = nO(); antiPlayersHolder.Parent = globalPage
-    local aph = Instance.new("UIListLayout"); aph.Padding = UDim.new(0,4)
-    aph.SortOrder = Enum.SortOrder.LayoutOrder; aph.Parent = antiPlayersHolder
-
-    local function makeAntiToggle(parent, label, initialState, cb)
-        local f = Instance.new("Frame"); f.Size = UDim2.new(1,0,0,BTN_H)
-        f.BackgroundColor3 = Theme.bgCard; f.BorderSizePixel = 0
-        f.Parent = parent; newCorner(f,6)
-        local l = Instance.new("TextLabel"); l.Size = UDim2.new(1,-70,1,0); l.Position = UDim2.new(0,12,0,0)
-        l.BackgroundTransparency = 1; l.Text = label; l.TextColor3 = Theme.text
-        l.Font = Enum.Font.Gotham; l.TextSize = SMALL_FONT
-        l.TextXAlignment = Enum.TextXAlignment.Left; l.Parent = f
-        local b = Instance.new("TextButton"); b.Size = UDim2.new(0,IS_MOBILE and 60 or 52,0,BTN_H-6)
-        b.Position = UDim2.new(1,-(IS_MOBILE and 68 or 60),0.5,-(BTN_H-6)/2)
-        b.BackgroundColor3 = initialState and Theme.danger or Color3.fromRGB(70,70,85)
-        b.BorderSizePixel = 0; b.Text = initialState and "ON" or "OFF"
-        b.TextColor3 = Color3.new(1,1,1); b.Font = Enum.Font.GothamBold
-        b.TextSize = IS_MOBILE and 12 or 10; b.Parent = f; newCorner(b,5)
-        local st = initialState
-        b.MouseButton1Click:Connect(function()
-            st = not st
-            b.BackgroundColor3 = st and Theme.danger or Color3.fromRGB(70,70,85)
-            b.Text = st and "ON" or "OFF"
-            if cb then cb(st) end end)
-        return f
-    end
-
-    local charAntiRows = {}
-    local sortedAntiChars = {}
-    for k in pairs(Characters) do table.insert(sortedAntiChars, k) end
-    table.sort(sortedAntiChars)
-
-    local playerAntiRows = {}
-    local lastPlayerCount = -1
-
-    local function refreshPlayerAntiList()
-        local currentPlayers = {}
-        for _, p in ipairs(Players:GetPlayers()) do
-            if p ~= LocalPlayer then table.insert(currentPlayers, p) end end
-        table.sort(currentPlayers, function(a,b) return a.Name:lower() < b.Name:lower() end)
-
-        for plr, row in pairs(playerAntiRows) do
-            if not plr.Parent then row:Destroy(); playerAntiRows[plr] = nil end end
-
-        for _, plr in ipairs(currentPlayers) do
-            if not playerAntiRows[plr] then
-                local initialState = GlobalConfig.antiFlingPlayers[plr.Name] == true
-                local row = makeAntiToggle(antiPlayersHolder, plr.Name, initialState,
-                    function(state)
-                        if state then GlobalConfig.antiFlingPlayers[plr.Name] = true
-                        else GlobalConfig.antiFlingPlayers[plr.Name] = nil end
-                        if state then notify("Anti-fling: "..plr.Name, Theme.danger)
-                        else notify("Unblocked: "..plr.Name, Theme.success) end end)
-                playerAntiRows[plr] = row
-            end
-        end
-    end
-
     makeSection(globalPage, tr("autoFlingChar"), nO())
     local autoBox=Instance.new("TextBox"); autoBox.Size=UDim2.new(1,0,0,INPUT_H)
     autoBox.BackgroundColor3=Theme.bgCard; autoBox.BorderSizePixel=0
@@ -1807,12 +1473,11 @@ local function buildGUI()
         for _, c in ipairs(autoSuggest:GetChildren()) do
             if c:IsA("TextButton") then c:Destroy() end end end
 
-        autoBox:GetPropertyChangedSignal("Text"):Connect(function()
+    autoBox:GetPropertyChangedSignal("Text"):Connect(function()
         local text = autoBox.Text:lower()
         clearAutoSuggest()
         if text == "" then autoSuggest.Visible = false; return end
         local shown = 0
-
         for key, d in pairs(Characters) do
             local nm = (d.name[CurrentLang] or d.name.en):lower()
             if nm:sub(1, #text) == text or key:lower():sub(1, #text) == text then
@@ -1829,7 +1494,6 @@ local function buildGUI()
                 if shown >= 10 then break end
             end
         end
-
         if shown < 10 then
             for _, plr in ipairs(Players:GetPlayers()) do
                 if plr ~= LocalPlayer and plr.Name:lower():sub(1, #text) == text then
@@ -1847,10 +1511,9 @@ local function buildGUI()
                 end
             end
         end
-
         autoSuggest.Visible = shown > 0
     end)
-        autoBox.FocusLost:Connect(function()
+    autoBox.FocusLost:Connect(function()
         GlobalConfig.autoFlingChar = autoBox.Text
         task.wait(0.2); clearAutoSuggest(); autoSuggest.Visible = false
     end)
@@ -2217,5 +1880,5 @@ buildGUI()
 buildChatIcon()
 buildReturnBtn()
 
-print("[KJ TEST v8.0] Loaded. Authors: nikitosiki2000 & deepseek")
+print("[KJ TEST v8.0] Loaded. Authors: nitosiki2000 & deepseek")
 if IS_MOBILE then print("[KJ TEST] Mobile mode") end
