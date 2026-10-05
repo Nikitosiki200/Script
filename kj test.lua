@@ -214,6 +214,13 @@ local Characters = {
         tpFromBase=false,tpFromUlt=false,distance=35,position=Vector3.new(0,655,-365),noExpand=true },
 }
 
+for _, c in pairs(Characters) do
+    c.ultTPToggles = {}
+    for _, mv in ipairs(c.ultMoves or {}) do
+        c.ultTPToggles[mv] = false
+    end
+end
+
 local GlobalConfig = {
     cooldown=0.5, soundAlert=true, notifications=true, pulseUlt=true, espEnabled=true,
     forceShowAllUntil=0, soundId="rbxassetid://4590662766",
@@ -276,6 +283,8 @@ local function hexToColor(s)
     return Color3.fromRGB(r,g,b) end
 
 local highlights, labels, origTitleText = {}, {}, {}
+local tpRings = {}
+local ultMoveWasOnCD = {}
 local adminHiddenPlayers = {}
 
 local function removeHighlight(p) if highlights[p] then pcall(function() highlights[p].instance:Destroy() end); highlights[p]=nil end end
@@ -287,6 +296,37 @@ local function destroyAllLabels()
     local ks={}; for k in pairs(labels) do table.insert(ks,k) end
     for _,k in ipairs(ks) do destroyLabel(k) end
     origTitleText={} end
+
+local function removeRing(plr)
+    if tpRings[plr] then
+        pcall(function() tpRings[plr]:Destroy() end)
+        tpRings[plr] = nil
+    end
+end
+
+local function updateRing(plr, radius)
+    local char = plr.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if not hrp then removeRing(plr); return end
+    local ring = tpRings[plr]
+    if not ring or not ring.Parent then
+        ring = Instance.new("Part")
+        ring.Name = "KJ_TPRing"
+        ring.Shape = Enum.PartType.Cylinder
+        ring.Material = Enum.Material.Neon
+        ring.Color = Color3.fromRGB(255, 130, 60)
+        ring.Transparency = 0.75
+        ring.Anchored = true
+        ring.CanCollide = false
+        ring.CanQuery = false
+        ring.CanTouch = false
+        ring.Size = Vector3.new(0.1, radius*2, radius*2)
+        ring.Parent = workspace
+        tpRings[plr] = ring
+    end
+    ring.Size = Vector3.new(0.1, radius*2, radius*2)
+    ring.CFrame = CFrame.new(hrp.Position - Vector3.new(0, 2.6, 0)) * CFrame.Angles(0, 0, math.rad(90))
+end
 
 local function applyHighlight(p, charKey, form)
     if not GlobalConfig.espEnabled then return end
@@ -379,10 +419,6 @@ local function updateNameLabel(p, charKey, form)
             local ms = p:FindFirstChild("Moveset")
             if ms then pcall(function() aw = ms:GetAttribute("AwakeningProgress") end) end
         end
-        if aw == nil and model then
-            local ms = model:FindFirstChild("Moveset")
-            if ms then pcall(function() aw = ms:GetAttribute("AwakeningProgress") end) end
-        end
         if type(aw) == "number" then
             local pct = math.clamp(aw / 100, 0, 1)
             barBg.Visible = true
@@ -427,9 +463,9 @@ local tracked, playerData = {}, {}
 local function trackPlayer(p)
     if p==LocalPlayer or tracked[p] then return end
     tracked[p]=true
-    p.CharacterRemoving:Connect(function() removeHighlight(p); destroyLabel(p); playerData[p]=nil end) end
+    p.CharacterRemoving:Connect(function() removeHighlight(p); destroyLabel(p); playerData[p]=nil; removeRing(p) end) end
 local function untrackPlayer(p)
-    tracked[p]=nil; playerData[p]=nil; removeHighlight(p); destroyLabel(p) end
+    tracked[p]=nil; playerData[p]=nil; removeHighlight(p); destroyLabel(p); removeRing(p) end
 for _,p in ipairs(Players:GetPlayers()) do trackPlayer(p) end
 Players.PlayerAdded:Connect(trackPlayer); Players.PlayerRemoving:Connect(untrackPlayer)
 
@@ -624,6 +660,31 @@ RunService.Heartbeat:Connect(function(dt)
                 local d=Characters[ck]; local mt=d and d.ultMemoryTime or 0
                 if mt>0 and lastUlt>0 and (tick()-lastUlt)<mt then fm="ult" end end
             playerData[plr] = ck and {charKey=ck, form=fm, lastUltTime=lastUlt} or nil
+
+            if ck then
+                local ms = findMoveset(plr)
+                if ms then
+                    local d = Characters[ck]
+                    if not ultMoveWasOnCD[plr] then ultMoveWasOnCD[plr] = {} end
+                    for moveName, enabled in pairs(d.ultTPToggles or {}) do
+                        if enabled and moveName ~= "Death Counter" then
+                            local mv = ms:FindFirstChild(moveName)
+                            local onCD = false
+                            if mv then
+                                local v = mv:GetAttribute("onCDS")
+                                onCD = (v == true)
+                            end
+                            local prevCD = ultMoveWasOnCD[plr][moveName] or false
+                            if onCD and not prevCD then
+                                escaped = ck
+                                escapedForm = "ult"
+                            end
+                            ultMoveWasOnCD[plr][moveName] = onCD
+                        end
+                    end
+                end
+            end
+
             if GlobalConfig.autoFlingEnabled and GlobalConfig.autoFlingChar ~= "" then
                 local matched = false
                 if ck and ck == GlobalConfig.autoFlingChar then matched = true
@@ -650,12 +711,18 @@ RunService.Heartbeat:Connect(function(dt)
                 highlights[plr].instance.FillTransparency=GlobalConfig.fillTransparency+pulse
             elseif highlights[plr] then
                 highlights[plr].instance.FillTransparency=GlobalConfig.fillTransparency end
-            if myRoot then
-                local tpEn = (fm=="ult") and d.tpFromUlt or d.tpFromBase
-                if tpEn then
+            local tpEn = (fm=="ult") and d.tpFromUlt or d.tpFromBase
+            if tpEn then
+                updateRing(plr, d.distance or 35)
+                if myRoot then
                     local tr = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
                     if tr and (tr.Position-myRoot.Position).Magnitude < (d.distance or 35) then
-                        escaped=ck; escapedForm=fm end end end end end
+                        escaped=ck; escapedForm=fm end end
+            else
+                removeRing(plr)
+            end
+        end
+    end
 
     if escaped and myRoot and tpCD<=0 then
         tpCD=GlobalConfig.cooldown
@@ -705,11 +772,16 @@ end
 local function buildCfg()
     local o={ Characters={}, Global={} }
     for k,d in pairs(Characters) do
+        local ultT = {}
+        for mvName, state in pairs(d.ultTPToggles or {}) do
+            ultT[mvName] = state
+        end
         o.Characters[k]={ colorBase=d.colorBase, colorUlt=d.colorUlt,
             highlightBase=d.highlightBase, highlightUlt=d.highlightUlt,
             showName=d.showName, showHp=d.showHp,
             tpFromBase=d.tpFromBase, tpFromUlt=d.tpFromUlt,
-            distance=d.distance, position=d.position } end
+            distance=d.distance, position=d.position,
+            ultTPToggles=ultT } end
     local keybindsOut = {}
     for k, v in pairs(GlobalConfig.keybinds) do
         keybindsOut[k] = v.Name
@@ -732,7 +804,19 @@ local function applyCfg(cfg)
     if cfg.Characters then
         for k,s in pairs(cfg.Characters) do
             local d=Characters[k]
-            if d then for f,v in pairs(s) do d[f]=v end end end end
+            if d then
+                for f,v in pairs(s) do
+                    if f == "ultTPToggles" and type(v) == "table" then
+                        for mvName, state in pairs(v) do
+                            d.ultTPToggles[mvName] = state
+                        end
+                    else
+                        d[f]=v
+                    end
+                end
+            end
+        end
+    end
     if cfg.Global then
         for k,v in pairs(cfg.Global) do
             if k == "keybinds" and type(v) == "table" then
@@ -899,6 +983,10 @@ task.spawn(function()
 local screenGui, pickerPopup
 local subtitleRef
 local chatGuiRef, chatWindowRef, chatContentRef
+local ultBarFill, ultBarLabel
+local killstreakLabel
+local killstreak = 0
+local lastKills = nil
 
 local function newCorner(p,r) local c=Instance.new("UICorner"); c.CornerRadius=UDim.new(0,r or 6); c.Parent=p; return c end
 local function newStroke(p,c,t) local s=Instance.new("UIStroke"); s.Color=c or Theme.accentDark
@@ -1155,6 +1243,128 @@ local function buildReturnBtn()
         local hum=LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
         if hum then workspace.CurrentCamera.CameraSubject=hum end
         notify("Camera → me", Theme.success) end)
+end
+
+local function buildUltBar()
+    local g = Instance.new("ScreenGui")
+    g.Name = "KJ_UltBar"
+    g.ResetOnSpawn = false
+    g.IgnoreGuiInset = true
+    g.Parent = (gethui and gethui()) or LocalPlayer:WaitForChild("PlayerGui")
+
+    local bg = Instance.new("Frame")
+    bg.Size = UDim2.new(0, 260, 0, 26)
+    bg.Position = UDim2.new(0.5, -130, 0, 40)
+    bg.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+    bg.BackgroundTransparency = 0.2
+    bg.BorderSizePixel = 0
+    bg.Parent = g
+    newCorner(bg, 6)
+    local s = Instance.new("UIStroke"); s.Color = Theme.accentDark; s.Thickness = 1.5; s.Parent = bg
+
+    ultBarFill = Instance.new("Frame")
+    ultBarFill.Size = UDim2.new(0, 0, 1, 0)
+    ultBarFill.BackgroundColor3 = Color3.fromRGB(255, 200, 50)
+    ultBarFill.BorderSizePixel = 0
+    ultBarFill.Parent = bg
+    newCorner(ultBarFill, 6)
+
+    ultBarLabel = Instance.new("TextLabel")
+    ultBarLabel.Size = UDim2.new(1, 0, 1, 0)
+    ultBarLabel.BackgroundTransparency = 1
+    ultBarLabel.Text = "0 / 100"
+    ultBarLabel.TextColor3 = Color3.new(1,1,1)
+    ultBarLabel.TextStrokeTransparency = 0
+    ultBarLabel.TextStrokeColor3 = Color3.new(0,0,0)
+    ultBarLabel.Font = Enum.Font.GothamBold
+    ultBarLabel.TextSize = 14
+    ultBarLabel.ZIndex = 2
+    ultBarLabel.Parent = bg
+
+    task.spawn(function()
+        while true do
+            task.wait(0.1)
+            local aw = nil
+            pcall(function() aw = LocalPlayer:GetAttribute("AwakeningProgress") end)
+            if aw == nil then
+                local ms = LocalPlayer:FindFirstChild("Moveset")
+                if ms then pcall(function() aw = ms:GetAttribute("AwakeningProgress") end) end
+            end
+            if aw == nil then
+                local ch = LocalPlayer.Character
+                if ch then pcall(function() aw = ch:GetAttribute("AwakeningProgress") end) end
+            end
+            if aw == nil then pcall(function() aw = LocalPlayer.AwakeningProgress end) end
+            if aw == nil then
+                local v = LocalPlayer:FindFirstChild("AwakeningProgress")
+                if v and v:IsA("ValueBase") then aw = v.Value end
+            end
+            if type(aw) == "number" and ultBarFill and ultBarLabel then
+                local pct = math.clamp(aw / 100, 0, 1)
+                ultBarFill.Size = UDim2.new(pct, 0, 1, 0)
+                ultBarLabel.Text = string.format("%d / 100", math.floor(aw))
+                if pct >= 1 then ultBarFill.BackgroundColor3 = Color3.fromRGB(255, 220, 40)
+                elseif pct > 0.5 then ultBarFill.BackgroundColor3 = Color3.fromRGB(255, 180, 40)
+                else ultBarFill.BackgroundColor3 = Color3.fromRGB(200, 140, 40) end
+            end
+        end
+    end)
+end
+
+local function buildKillstreak()
+    local g = Instance.new("ScreenGui")
+    g.Name = "KJ_Killstreak"
+    g.ResetOnSpawn = false
+    g.IgnoreGuiInset = true
+    g.Parent = (gethui and gethui()) or LocalPlayer:WaitForChild("PlayerGui")
+
+    killstreakLabel = Instance.new("TextLabel")
+    killstreakLabel.Size = UDim2.new(0, 220, 0, 32)
+    killstreakLabel.Position = UDim2.new(1, -20, 1, -60)
+    killstreakLabel.AnchorPoint = Vector2.new(1, 1)
+    killstreakLabel.BackgroundTransparency = 1
+    killstreakLabel.Text = ""
+    killstreakLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
+    killstreakLabel.TextStrokeTransparency = 0
+    killstreakLabel.TextStrokeColor3 = Color3.new(0,0,0)
+    killstreakLabel.Font = Enum.Font.GothamBold
+    killstreakLabel.TextSize = 20
+    killstreakLabel.TextXAlignment = Enum.TextXAlignment.Right
+    killstreakLabel.Visible = false
+    killstreakLabel.Parent = g
+
+    task.spawn(function()
+        while true do
+            task.wait(0.3)
+            local ls = LocalPlayer:FindFirstChild("leaderstats")
+            if ls then
+                local k = ls:FindFirstChild("Kills")
+                if k and k:IsA("IntValue") then
+                    if lastKills == nil then
+                        lastKills = k.Value
+                    elseif k.Value > lastKills then
+                        killstreak = killstreak + (k.Value - lastKills)
+                        lastKills = k.Value
+                        if killstreakLabel then
+                            killstreakLabel.Text = "killstreak: " .. tostring(killstreak)
+                            killstreakLabel.Visible = true
+                        end
+                    elseif k.Value < lastKills then
+                        lastKills = k.Value
+                    end
+                end
+            end
+        end
+    end)
+
+    LocalPlayer.CharacterAdded:Connect(function()
+        killstreak = 0
+        task.wait(1.5)
+        if killstreakLabel then
+            killstreakLabel.Text = ""
+            killstreakLabel.Visible = false
+        end
+    end)
 end
 
 local function buildGUI()
@@ -1569,6 +1779,15 @@ local function buildGUI()
             makeNumber(bd, "X", d.position.X, bN(), function(v) d.position=Vector3.new(v,d.position.Y,d.position.Z) end)
             makeNumber(bd, "Y", d.position.Y, bN(), function(v) d.position=Vector3.new(d.position.X,v,d.position.Z) end)
             makeNumber(bd, "Z", d.position.Z, bN(), function(v) d.position=Vector3.new(d.position.X,d.position.Y,v) end)
+            if d.ultMoves and #d.ultMoves > 0 then
+                makeSection(bd, "Ult TP", bN())
+                for _, mvName in ipairs(d.ultMoves) do
+                    local init = d.ultTPToggles[mvName] == true
+                    makeToggle(bd, mvName, init, bN(), function(v)
+                        d.ultTPToggles[mvName] = v
+                    end)
+                end
+            end
             local tpB=Instance.new("TextButton"); tpB.Size=UDim2.new(1,0,0,BTN_H); tpB.BackgroundColor3=d.colorBase
             tpB.BorderSizePixel=0; tpB.Text=tr("teleportNow"); tpB.TextColor3=Color3.new(1,1,1)
             tpB.Font=Enum.Font.GothamBold; tpB.TextSize=BIG_FONT
@@ -1792,7 +2011,7 @@ local function buildGUI()
     ahTitle.Parent = authorsHeader
     local ahSub = Instance.new("TextLabel")
     ahSub.Size = UDim2.new(1,-90,0,20); ahSub.Position = UDim2.new(0,85,0,40)
-    ahSub.BackgroundTransparency = 1; ahSub.Text = "KJ Test v8.0"
+    ahSub.BackgroundTransparency = 1; ahSub.Text = "KJ Test v8.1"
     ahSub.TextColor3 = Theme.textDim; ahSub.Font = Enum.Font.Gotham
     ahSub.TextSize = 12; ahSub.TextXAlignment = Enum.TextXAlignment.Left
     ahSub.Parent = authorsHeader
@@ -1877,6 +2096,8 @@ task.spawn(function()
 buildGUI()
 buildChatIcon()
 buildReturnBtn()
+buildUltBar()
+buildKillstreak()
 
-print("[KJ TEST v8.0] Loaded. Authors: nitosiki2000 & deepseek")
+print("[KJ TEST v8.1] Loaded. Authors: nikitosiki2000 & deepseek")
 if IS_MOBILE then print("[KJ TEST] Mobile mode") end
