@@ -9,6 +9,12 @@ local LP = LocalPlayer
 
 local IS_MOBILE = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 
+local ALLOWED_PLACE_ID = 75753413268977
+if game.PlaceId ~= ALLOWED_PLACE_ID then
+    pcall(function() LP:Kick("KJ TEST: Only works in "..ALLOWED_PLACE_ID) end)
+    return
+end
+
 local httpReq = (syn and syn.request) or (http and http.request) or http_request or request
 local function http(method, url, body, headers, timeout)
     if not httpReq then return nil end
