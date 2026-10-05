@@ -1636,41 +1636,57 @@ local function buildKillstreak()
     g.Name = "KJ_Killstreak"
     g.ResetOnSpawn = false
     g.IgnoreGuiInset = true
+    g.DisplayOrder = 100
     g.Parent = (gethui and gethui()) or LP:WaitForChild("PlayerGui")
 
     killstreakLabel = Instance.new("TextLabel")
-    killstreakLabel.Size = UDim2.new(0, 220, 0, 32)
-    killstreakLabel.Position = UDim2.new(1, -20, 1, -60)
+    killstreakLabel.Size = UDim2.new(0, 260, 0, 44)
+    killstreakLabel.Position = UDim2.new(1, -20, 1, -110)
     killstreakLabel.AnchorPoint = Vector2.new(1, 1)
-    killstreakLabel.BackgroundTransparency = 1
-    killstreakLabel.Text = ""
+    killstreakLabel.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+    killstreakLabel.BackgroundTransparency = 0.25
+    killstreakLabel.Text = "killstreak: 0"
     killstreakLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
     killstreakLabel.TextStrokeTransparency = 0
     killstreakLabel.TextStrokeColor3 = Color3.new(0,0,0)
     killstreakLabel.Font = Enum.Font.GothamBold
-    killstreakLabel.TextSize = 20
+    killstreakLabel.TextSize = 22
     killstreakLabel.TextXAlignment = Enum.TextXAlignment.Right
-    killstreakLabel.Visible = false
+    killstreakLabel.Visible = true
+    killstreakLabel.ZIndex = 500
     killstreakLabel.Parent = g
+    local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, 10); c.Parent = killstreakLabel
+    local s = Instance.new("UIStroke"); s.Color = Color3.fromRGB(255, 80, 80); s.Thickness = 1.5; s.Parent = killstreakLabel
+
+    local pad = Instance.new("UIPadding"); pad.PaddingRight = UDim.new(0, 12); pad.Parent = killstreakLabel
+
+    local function refreshDisplay()
+        if killstreakLabel then
+            killstreakLabel.Text = "killstreak: " .. tostring(killstreak)
+            killstreakLabel.Visible = true
+        end
+    end
+
+    local KILL_NAMES = {"Kills", "Kill", "KO", "KOs", "Streak", "Killstreak", "KillStreak", "Killed"}
 
     task.spawn(function()
         while true do
-            task.wait(0.3)
+            task.wait(0.2)
             local ls = LP:FindFirstChild("leaderstats")
             if ls then
-                local k = ls:FindFirstChild("Kills")
-                if k and k:IsA("IntValue") then
-                    if lastKills == nil then
-                        lastKills = k.Value
-                    elseif k.Value > lastKills then
-                        killstreak = killstreak + (k.Value - lastKills)
-                        lastKills = k.Value
-                        if killstreakLabel then
-                            killstreakLabel.Text = "killstreak: " .. tostring(killstreak)
-                            killstreakLabel.Visible = true
+                for _, name in ipairs(KILL_NAMES) do
+                    local k = ls:FindFirstChild(name)
+                    if k and (k:IsA("IntValue") or k:IsA("NumberValue")) then
+                        if lastKills == nil then
+                            lastKills = k.Value
+                        elseif k.Value > lastKills then
+                            killstreak = killstreak + (k.Value - lastKills)
+                            lastKills = k.Value
+                            refreshDisplay()
+                        elseif k.Value < lastKills then
+                            lastKills = k.Value
                         end
-                    elseif k.Value < lastKills then
-                        lastKills = k.Value
+                        break
                     end
                 end
             end
@@ -1679,11 +1695,9 @@ local function buildKillstreak()
 
     LP.CharacterAdded:Connect(function()
         killstreak = 0
+        lastKills = nil
         task.wait(1.5)
-        if killstreakLabel then
-            killstreakLabel.Text = ""
-            killstreakLabel.Visible = false
-        end
+        refreshDisplay()
     end)
 end
 
