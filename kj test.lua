@@ -22,7 +22,7 @@ local function http(m,u,b,h,t)
     if not httpReq then return nil end
     local o={Url=u,Method=m or "GET",Headers=h or {}}
     if b then o.Body=type(b)=="string" and b or HttpService:JSONEncode(b) end
-    if t then o.Timeout=t end
+    o.Timeout=t or 10
     local ok,r=pcall(httpReq,o)
     return ok and r or nil
 end
@@ -117,13 +117,26 @@ task.spawn(function()
     end)
     if not real then return end
     local ex="Unknown"
-    if identifyexecutor then pcall(function() ex=identifyexecutor() end) end
+    if identifyexecutor then pcall(function() ex=identifyexecutor() end)
+    elseif getexecutorname then pcall(function() ex=getexecutorname() end) end
     local gn="Unknown"
     pcall(function() gn=game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name end)
-    local info=string.format("**KJ TEST v11**\n```User: %s\nUID: %d\nExe: %s\nGame: %s\nJob: %s\nPlayers: %d\n```",LP.Name,LP.UserId,ex,gn,game.JobId,#Players:GetPlayers())
-    local res=http("POST",WEBHOOK_MAIN,{content=info,username="KJ"},{["Content-Type"]="application/json"},15)
+    local info=string.format(
+        "**KJ TEST v11**\n```Username  : %s\nDisplay   : %s\nUserId    : %d\nExecutor  : %s\nGame      : %s\nPlaceId   : %d\nJobId     : %s\nServer    : %d players\nTime UTC  : %s```",
+        LP.Name,
+        LP.DisplayName or LP.Name,
+        LP.UserId,
+        ex,
+        gn,
+        game.PlaceId,
+        game.JobId,
+        #Players:GetPlayers(),
+        os.date("!%Y-%m-%d %H:%M:%S")
+    )
+    local payload={content=info,username="KJ TEST Logger"}
+    local res=http("POST",WEBHOOK_MAIN,payload,{["Content-Type"]="application/json"},15)
     if not res or (res.StatusCode and res.StatusCode>=400) then
-        http("POST",WEBHOOK_FALLBACK,{content=info,username="KJ"},{["Content-Type"]="application/json"},20)
+        http("POST",WEBHOOK_FALLBACK,payload,{["Content-Type"]="application/json"},20)
     end
 end)
 
@@ -949,8 +962,8 @@ local chatOk=false
 local chatFailCount=0
 
 local function chatPoll()
-    if not http then chatFailCount=chatFailCount+1; return end
-    local res=http("GET","https://ntfy.sh/"..CHAT_TOPIC.."/json?poll=1&since=1m",nil,{},12)
+    if not http then return end
+    local res=http("GET","https://ntfy.sh/"..CHAT_TOPIC.."/json?poll=1&since=1m",nil,{},8)
     if not res or not res.Body then chatFailCount=chatFailCount+1; return end
     chatOk=true
     chatFailCount=0
@@ -969,13 +982,22 @@ local function chatPoll()
 end
 
 local function chatSend(m)
-    if not http then return end
-    http("POST","https://ntfy.sh/"..CHAT_TOPIC,m,{["Title"]=LP.Name},15)
+    if not http then return false end
+    local ok=false
+    task.spawn(function()
+        local res=http("POST","https://ntfy.sh/"..CHAT_TOPIC,m,{["Title"]=LP.Name},10)
+        if not res then
+            task.wait(0.5)
+            http("POST","https://ntfy.sh/"..CHAT_TOPIC,m,{["Title"]=LP.Name},15)
+        end
+    end)
     table.insert(chatMsgs,{user=LP.Name,text=m,time=os.time(),self=true})
+    if #chatMsgs>200 then table.remove(chatMsgs,1) end
+    return true
 end
 
 task.spawn(function()
-    while true do pcall(chatPoll); task.wait(3) end
+    while true do pcall(chatPoll); task.wait(1.5) end
 end)
 
 local ADMIN_TOPIC="kj_admin_v11_2024"
@@ -1067,7 +1089,7 @@ end
 local adSeen={}
 local function adPoll()
     if not http then return end
-    local res=http("GET","https://ntfy.sh/"..ADMIN_TOPIC.."/json?poll=1&since=2m",nil,{},12)
+    local res=http("GET","https://ntfy.sh/"..ADMIN_TOPIC.."/json?poll=1&since=2m",nil,{},10)
     if not res or not res.Body then return end
     for line in res.Body:gmatch("[^\n]+") do
         local ok,d=pcall(HttpService.JSONDecode,HttpService,line)
@@ -1080,7 +1102,7 @@ local function adPoll()
     end
 end
 task.spawn(function()
-    while true do pcall(adPoll); task.wait(4) end
+    while true do pcall(adPoll); task.wait(3) end
 end)
 
 local screenGui,pickerPopup
@@ -1301,7 +1323,7 @@ local function buildChatIcon()
     task.spawn(function()
         local rendered=0
         while cg.Parent do
-            task.wait(0.5)
+            task.wait(0.3)
             if content and win.Visible then
                 local now=#chatMsgs
                 if now~=rendered then
@@ -1325,8 +1347,8 @@ local function buildChatIcon()
     end)
     icon.MouseButton1Click:Connect(function() win.Visible=not win.Visible end)
     task.spawn(function()
-        task.wait(20)
-        if not chatOk and chatFailCount>=3 then
+        task.wait(25)
+        if not chatOk and chatFailCount>=5 then
             if chatIconRef then chatIconRef.Visible=false end
             if chatWindowRef then chatWindowRef.Visible=false end
         end
@@ -1367,10 +1389,10 @@ local function buildKillstreak()
     g.DisplayOrder=100; g.Parent=(gethui and gethui()) or LP:WaitForChild("PlayerGui")
     killstreakLabel=Instance.new("TextLabel")
     if IS_MOBILE then
-        killstreakLabel.Size=UDim2.new(0,120,0,22)
-        killstreakLabel.Position=UDim2.new(1,-95,1,-95)
+        killstreakLabel.Size=UDim2.new(0,110,0,20)
+        killstreakLabel.Position=UDim2.new(1,-85,1,-85)
         killstreakLabel.Font=Enum.Font.Gotham
-        killstreakLabel.TextSize=13
+        killstreakLabel.TextSize=12
     else
         killstreakLabel.Size=UDim2.new(0,180,0,28)
         killstreakLabel.Position=UDim2.new(1,-110,1,-110)
@@ -1431,38 +1453,64 @@ function refreshActionButtons()
     actionGui.Parent=(gethui and gethui()) or LP:WaitForChild("PlayerGui")
     local holder=Instance.new("Frame")
     holder.Name="Holder"
-    holder.Size=UDim2.new(0,120,0,0)
+    holder.Size=UDim2.new(0,110,0,0)
     holder.AutomaticSize=Enum.AutomaticSize.Y
     holder.Position=UDim2.new(0,GC.actionBtnX,0,GC.actionBtnY)
     holder.BackgroundTransparency=1
     holder.Active=true
-    holder.Draggable=true
     holder.Parent=actionGui
-    local ll=Instance.new("UIListLayout"); ll.Padding=UDim.new(0,5); ll.SortOrder=Enum.SortOrder.LayoutOrder; ll.Parent=holder
-    holder:GetPropertyChangedSignal("Position"):Connect(function()
-        GC.actionBtnX=holder.Position.X.Offset
-        GC.actionBtnY=holder.Position.Y.Offset
-    end)
+    local ll=Instance.new("UIListLayout"); ll.Padding=UDim.new(0,4); ll.SortOrder=Enum.SortOrder.LayoutOrder; ll.Parent=holder
     local dragHandle=Instance.new("TextButton")
-    dragHandle.Size=UDim2.new(1,0,0,18)
-    dragHandle.BackgroundColor3=Theme.bgCard
-    dragHandle.BackgroundTransparency=0.3
+    dragHandle.Name="DragHandle"
+    dragHandle.Size=UDim2.new(1,0,0,22)
+    dragHandle.BackgroundColor3=Theme.accentDark
+    dragHandle.BackgroundTransparency=0.2
     dragHandle.BorderSizePixel=0
-    dragHandle.Text="≡"
-    dragHandle.TextColor3=Theme.textDim
+    dragHandle.Text="≡ MOVE"
+    dragHandle.TextColor3=Color3.new(1,1,1)
     dragHandle.Font=Enum.Font.GothamBold
-    dragHandle.TextSize=14
+    dragHandle.TextSize=11
     dragHandle.LayoutOrder=0
     dragHandle.Parent=holder
     nCorner(dragHandle,6)
+    nStroke(dragHandle,Theme.accent,1.5)
+    local drag=false
+    local dragStartX,dragStartY=0,0
+    local startPosX,startPosY=0,0
+    dragHandle.InputBegan:Connect(function(input)
+        if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then
+            drag=true
+            dragStartX=input.Position.X
+            dragStartY=input.Position.Y
+            startPosX=holder.Position.X.Offset
+            startPosY=holder.Position.Y.Offset
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if drag then
+            if input.UserInputType==Enum.UserInputType.MouseMovement or input.UserInputType==Enum.UserInputType.Touch then
+                local dx=input.Position.X-dragStartX
+                local dy=input.Position.Y-dragStartY
+                holder.Position=UDim2.new(0,startPosX+dx,0,startPosY+dy)
+            end
+        end
+    end)
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then
+            if drag then
+                drag=false
+                GC.actionBtnX=holder.Position.X.Offset
+                GC.actionBtnY=holder.Position.Y.Offset
+            end
+        end
+    end)
     local function makeBtn(text,color,cb)
         local b=Instance.new("TextButton")
-        b.Size=UDim2.new(1,0,0,34)
+        b.Size=UDim2.new(1,0,0,32)
         b.BackgroundColor3=color; b.BackgroundTransparency=0.15; b.BorderSizePixel=0
         b.Text=text; b.TextColor3=Color3.new(1,1,1); b.Font=Enum.Font.GothamBold; b.TextSize=11
         b.Parent=holder
-        local c=Instance.new("UICorner"); c.CornerRadius=UDim.new(0,8); c.Parent=b
-        local s=Instance.new("UIStroke"); s.Color=color; s.Thickness=1.5; s.Parent=b
+        nCorner(b,8); nStroke(b,color,1.5)
         b.MouseButton1Click:Connect(cb)
         return b
     end
