@@ -185,7 +185,7 @@ local GC={
     cooldown=0.5,soundAlert=true,notifications=true,pulseUlt=true,espEnabled=true,
     forceShowAllUntil=0,soundId="rbxassetid://4590662766",labelOffset=3.2,
     fillTransparency=0.5,outlineTransparency=0,nameTextSize=13,hpTextSize=12,
-    hideAllHp=false,hideAllNames=false,showUltBar=true,showKillstreak=true,
+    hideAllHp=false,hideAllNames=false,showUltBar=true,showKillstreak=true,panicMode=false,
     autoFlingChar="",autoFlingEnabled=false,touchFlingEnabled=false,
     autoLoadConfig="",nameShowDuration=5,flingCount=1,
     flingSelected={},antiFlingChars={},
@@ -1405,6 +1405,36 @@ function refreshActionButtons()
     if GC.btnTpWalk then makeBtn("TP Walk",Color3.fromRGB(70,140,160),function() togTpWalk() end) end
 end
 
+local panicHidden = {}
+
+local function togglePanicMode(forceState)
+    GC.panicMode = forceState ~= nil and forceState or not GC.panicMode
+    local on = GC.panicMode
+
+    local pg = (gethui and gethui()) or LP:WaitForChild("PlayerGui")
+
+    if on then
+        panicHidden = {}
+        for _, gui in ipairs(pg:GetChildren()) do
+            if gui:IsA("ScreenGui") and gui.Name:sub(1,3) == "KJ_" then
+                panicHidden[gui] = gui.Enabled
+                gui.Enabled = false
+            end
+        end
+        if screenGui then
+            panicHidden[screenGui] = screenGui.Enabled
+            screenGui.Enabled = false
+        end
+        if killstreakLabel then killstreakLabel.Visible = false end
+    else
+        for gui, state in pairs(panicHidden) do
+            if gui and gui.Parent then gui.Enabled = state end
+        end
+        panicHidden = {}
+        if killstreakLabel then killstreakLabel.Visible = GC.showKillstreak end
+    end
+end
+
 local function buildGUI()
     screenGui=Instance.new("ScreenGui"); screenGui.Name="KJTestV11"
     screenGui.ResetOnSpawn=false; screenGui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling
@@ -1502,6 +1532,7 @@ local function buildGUI()
         notify(v and "ESP ON" or "ESP OFF",v and Theme.success or Theme.danger)
     end)
     makeToggle(gP,"Полоска ульты",GC.showUltBar,nO(),function(v) GC.showUltBar=v end)
+        makeToggle(gP,"Паник-мод (P)",GC.panicMode,nO(),function(v) togglePanicMode(v) end)
 makeToggle(gP,"Killstreak",GC.showKillstreak,nO(),function(v)
     GC.showKillstreak=v
     if killstreakLabel then killstreakLabel.Visible=v end
@@ -2137,6 +2168,9 @@ if not IS_MOBILE then
     UserInputService.InputBegan:Connect(function(input,gp)
         if gp then return end
         local kb=GC.keybinds
+        if input.KeyCode == Enum.KeyCode.L then
+    togglePanicMode()
+end
         if input.KeyCode==kb.toggleGUI then
             guiVisible=not guiVisible
             if screenGui then screenGui.Enabled=guiVisible end
