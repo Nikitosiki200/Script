@@ -185,7 +185,7 @@ local GC={
     cooldown=0.5,soundAlert=true,notifications=true,pulseUlt=true,espEnabled=true,
     forceShowAllUntil=0,soundId="rbxassetid://4590662766",labelOffset=3.2,
     fillTransparency=0.5,outlineTransparency=0,nameTextSize=13,hpTextSize=12,
-    hideAllHp=false,hideAllNames=false,showUltBar=true,
+    hideAllHp=false,hideAllNames=false,showUltBar=true,showKillstreak=true,
     autoFlingChar="",autoFlingEnabled=false,touchFlingEnabled=false,
     autoLoadConfig="",nameShowDuration=5,flingCount=1,
     flingSelected={},antiFlingChars={},
@@ -886,7 +886,7 @@ local function buildCfg()
     end
     local kb={}
     for k,v in pairs(GC.keybinds) do kb[k]=v.Name end
-    o.Global={cooldown=GC.cooldown,soundAlert=GC.soundAlert,notifications=GC.notifications,pulseUlt=GC.pulseUlt,espEnabled=GC.espEnabled,fillTransparency=GC.fillTransparency,outlineTransparency=GC.outlineTransparency,tpWalkSpeed=GC.tpWalkSpeed,tpWalkEnabled=GC.tpWalkEnabled,noclipEnabled=GC.noclipEnabled,infJumpEnabled=GC.infJumpEnabled,ctrlClickTP=GC.ctrlClickTP,hideAllHp=GC.hideAllHp,hideAllNames=GC.hideAllNames,showUltBar=GC.showUltBar,nameShowDuration=GC.nameShowDuration,flingCount=GC.flingCount,autoFlingChar=GC.autoFlingChar,autoFlingEnabled=GC.autoFlingEnabled,antiFlingChars=GC.antiFlingChars,keybinds=kb}
+    o.Global={cooldown=GC.cooldown,soundAlert=GC.soundAlert,notifications=GC.notifications,pulseUlt=GC.pulseUlt,espEnabled=GC.espEnabled,fillTransparency=GC.fillTransparency,outlineTransparency=GC.outlineTransparency,tpWalkSpeed=GC.tpWalkSpeed,tpWalkEnabled=GC.tpWalkEnabled,noclipEnabled=GC.noclipEnabled,infJumpEnabled=GC.infJumpEnabled,ctrlClickTP=GC.ctrlClickTP,hideAllHp=GC.hideAllHp,hideAllNames=GC.hideAllNames,showUltBar=GC.showUltBar,showKillstreak=GC.showKillstreak,nameShowDuration=GC.nameShowDuration,flingCount=GC.flingCount,autoFlingChar=GC.autoFlingChar,autoFlingEnabled=GC.autoFlingEnabled,antiFlingChars=GC.antiFlingChars,keybinds=kb}
     return o
 end
 
@@ -904,7 +904,7 @@ local function applyCfg(cfg)
             end
         end
     end
-    if cfg.Global then
+        if cfg.Global then
         for k,v in pairs(cfg.Global) do
             if k=="keybinds" and type(v)=="table" then
                 for bn,kn in pairs(v) do
@@ -914,8 +914,8 @@ local function applyCfg(cfg)
                 end
             else GC[k]=v end
         end
+        if killstreakLabel then killstreakLabel.Visible=GC.showKillstreak end
     end
-end
 
 local function saveCfg(name)
     ensF()
@@ -1288,7 +1288,7 @@ local function buildKillstreak()
     killstreakLabel.TextStrokeTransparency=0
     killstreakLabel.TextStrokeColor3=Color3.new()
     killstreakLabel.TextXAlignment=Enum.TextXAlignment.Right
-    killstreakLabel.Visible=true
+    killstreakLabel.Visible=GC.showKillstreak
     killstreakLabel.ZIndex=500
     killstreakLabel.Parent=g
     nCorner(killstreakLabel,8)
@@ -1303,10 +1303,13 @@ local function buildKillstreak()
                     local k=ls:FindFirstChild(name)
                     if k and (k:IsA("IntValue") or k:IsA("NumberValue")) then
                         if lastKills==nil then lastKills=k.Value
-                        elseif k.Value>lastKills then
+                                                elseif k.Value>lastKills then
                             killstreak=killstreak+(k.Value-lastKills)
                             lastKills=k.Value
-                            if killstreakLabel then killstreakLabel.Text="killstreak: "..tostring(killstreak) end
+                            if killstreakLabel then
+                                killstreakLabel.Text="killstreak: "..tostring(killstreak)
+                                killstreakLabel.Visible=GC.showKillstreak
+                            end
                         elseif k.Value<lastKills then lastKills=k.Value end
                         break
                     end
@@ -1499,7 +1502,11 @@ local function buildGUI()
         notify(v and "ESP ON" or "ESP OFF",v and Theme.success or Theme.danger)
     end)
     makeToggle(gP,"Полоска ульты",GC.showUltBar,nO(),function(v) GC.showUltBar=v end)
-    makeNumber(gP,"Время имён",GC.nameShowDuration,nO(),function(v) GC.nameShowDuration=v end)
+makeToggle(gP,"Killstreak",GC.showKillstreak,nO(),function(v)
+    GC.showKillstreak=v
+    if killstreakLabel then killstreakLabel.Visible=v end
+end)
+makeNumber(gP,"Время имён",GC.nameShowDuration,nO(),function(v) GC.nameShowDuration=v end)
 
     makeSection(gP,"Действия",nO())
     local sBtn=Instance.new("TextButton"); sBtn.Size=UDim2.new(1,0,0,BTN_H+2); sBtn.BackgroundColor3=Theme.accentDark
@@ -2166,10 +2173,10 @@ task.spawn(function()
 end)
 
 buildPlatform()
+buildKillstreak()
 buildGUI()
 buildReturnBtn()
 buildToggleGui()
-buildKillstreak()
 refreshActionButtons()
 
 if IS_DELTA then
