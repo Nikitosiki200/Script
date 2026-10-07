@@ -916,6 +916,7 @@ local function applyCfg(cfg)
         end
         if killstreakLabel then killstreakLabel.Visible=GC.showKillstreak end
     end
+end
 
 local function saveCfg(name)
     ensF()
