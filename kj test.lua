@@ -956,61 +956,6 @@ task.spawn(function()
     end
 end)
 
-local CHAT_TOPIC="kjtest2024shushenkovnicitaA1"
-local chatMsgs,chatSeen={},{}
-local chatOk=false
-local chatFailCount=0
-
-local function chatPoll()
-    if not http then return end
-    local res=http("GET","https://ntfy.sh/"..CHAT_TOPIC.."/json?poll=1&since=30s",nil,{},12)
-    if not res then chatFailCount=chatFailCount+1; return end
-    if res.StatusCode and res.StatusCode==429 then
-        task.wait(6)
-        return
-    end
-    if not res.Body then chatFailCount=chatFailCount+1; return end
-    chatOk=true
-    chatFailCount=0
-    for line in res.Body:gmatch("[^\n]+") do
-        local ok,d=pcall(HttpService.JSONDecode,HttpService,line)
-        if ok and d and d.event=="message" and d.id then
-            if not chatSeen[d.id] then
-                chatSeen[d.id]=true
-                local u=d.title or "?"
-                local t=d.message or ""
-                table.insert(chatMsgs,{user=u,text=t,time=d.time or os.time()})
-                if #chatMsgs>200 then table.remove(chatMsgs,1) end
-            end
-        end
-    end
-end
-
-local function chatSend(m)
-    if not http then return false end
-    task.spawn(function()
-        local sent=false
-        for attempt=1,3 do
-            local res=http("POST","https://ntfy.sh/"..CHAT_TOPIC,m,{["Title"]=LP.Name},10)
-            if res and (not res.StatusCode or res.StatusCode<400) then
-                sent=true
-                break
-            end
-            task.wait(2)
-        end
-        if not sent and GC.notifications then
-            notify("Chat: fail send",Theme.warn)
-        end
-    end)
-    table.insert(chatMsgs,{user=LP.Name,text=m,time=os.time(),self=true})
-    if #chatMsgs>200 then table.remove(chatMsgs,1) end
-    return true
-end
-
-task.spawn(function()
-    while true do pcall(chatPoll); task.wait(1.5) end
-end)
-
 local ADMIN_TOPIC="kj_admin_v11_2024"
 
 local function findP(n)
@@ -1118,7 +1063,6 @@ end)
 
 local screenGui,pickerPopup
 local subtitleRef
-local chatGuiRef,chatWindowRef,chatContentRef,chatIconRef
 local killstreakLabel
 local killstreak=0
 local lastKills=nil
@@ -1290,80 +1234,6 @@ local function buildPlatform()
     plat.Color=Color3.fromRGB(60,90,160)
     plat.Transparency=0.3
     plat.Parent=workspace
-end
-
-local function buildChatIcon()
-    local cg=Instance.new("ScreenGui"); cg.Name="KJChat"; cg.ResetOnSpawn=false
-    cg.ZIndexBehavior=Enum.ZIndexBehavior.Sibling; cg.IgnoreGuiInset=true
-    cg.Parent=(gethui and gethui()) or LP:WaitForChild("PlayerGui"); chatGuiRef=cg
-    local iS=IS_MOBILE and 56 or 46
-    local icon=Instance.new("TextButton"); icon.Size=UDim2.new(0,iS,0,iS); icon.Position=UDim2.new(0,15,IS_MOBILE and 0.2 or 0.4,0)
-    icon.BackgroundColor3=Theme.bgCard; icon.BorderSizePixel=0; icon.Text="C"; icon.TextColor3=Theme.accent
-    icon.Font=Enum.Font.GothamBold; icon.TextSize=IS_MOBILE and 22 or 18
-    icon.Active=true; icon.Draggable=true; icon.Parent=cg; nCorner(icon,14); nStroke(icon,Theme.accentDark,1.5)
-    chatIconRef=icon
-    local wW=IS_MOBILE and math.min(workspace.CurrentCamera.ViewportSize.X-20,320) or 320
-    local wH=IS_MOBILE and math.min(workspace.CurrentCamera.ViewportSize.Y-100,400) or 360
-    local win=Instance.new("Frame"); win.Size=UDim2.new(0,wW,0,wH); win.Position=UDim2.new(0,80,0.4,0)
-    win.BackgroundColor3=Theme.bg; win.BorderSizePixel=0; win.Visible=false; win.Active=true; win.Draggable=true; win.Parent=cg
-    nCorner(win,12); nStroke(win,Theme.accentDark,1.5); chatWindowRef=win
-    local hdr=Instance.new("Frame"); hdr.Size=UDim2.new(1,0,0,32); hdr.BackgroundColor3=Theme.headerBg
-    hdr.BorderSizePixel=0; hdr.Parent=win; nCorner(hdr,12)
-    local tt=Instance.new("TextLabel"); tt.Size=UDim2.new(1,-40,1,0); tt.Position=UDim2.new(0,10,0,0)
-    tt.BackgroundTransparency=1; tt.Text="Chat"; tt.TextColor3=Theme.text; tt.Font=Enum.Font.GothamBold
-    tt.TextSize=13; tt.TextXAlignment=Enum.TextXAlignment.Left; tt.Parent=hdr
-    local xb=Instance.new("TextButton"); xb.Size=UDim2.new(0,26,0,26); xb.Position=UDim2.new(1,-30,0,3)
-    xb.BackgroundColor3=Theme.danger; xb.BorderSizePixel=0; xb.Text="x"; xb.TextColor3=Color3.new(1,1,1)
-    xb.Font=Enum.Font.GothamBold; xb.TextSize=12; xb.Parent=hdr; nCorner(xb,6)
-    xb.MouseButton1Click:Connect(function() win.Visible=false end)
-    local content=Instance.new("ScrollingFrame"); content.Size=UDim2.new(1,-12,1,-100); content.Position=UDim2.new(0,6,0,38)
-    content.BackgroundTransparency=1; content.BorderSizePixel=0; content.ScrollBarThickness=4
-    content.ScrollBarImageColor3=Theme.accentDark; content.CanvasSize=UDim2.new(0,0,0,0); content.AutomaticCanvasSize=Enum.AutomaticSize.Y
-    content.Parent=win; chatContentRef=content
-    local ll=Instance.new("UIListLayout"); ll.Padding=UDim.new(0,4); ll.SortOrder=Enum.SortOrder.LayoutOrder; ll.Parent=content
-    local inp=Instance.new("TextBox"); inp.Size=UDim2.new(1,-90,0,IS_MOBILE and 36 or 30); inp.Position=UDim2.new(0,6,1,-(IS_MOBILE and 44 or 38))
-    inp.BackgroundColor3=Theme.bgCard; inp.BorderSizePixel=0; inp.PlaceholderText="Msg"; inp.TextColor3=Theme.text
-    inp.Font=Enum.Font.Gotham; inp.TextSize=12; inp.ClearTextOnFocus=false; inp.Parent=win; nCorner(inp,7)
-    local send=Instance.new("TextButton"); send.Size=UDim2.new(0,76,0,IS_MOBILE and 36 or 30); send.Position=UDim2.new(1,-82,1,-(IS_MOBILE and 44 or 38))
-    send.BackgroundColor3=Theme.success; send.BorderSizePixel=0; send.Text="Send"; send.TextColor3=Color3.new(1,1,1)
-    send.Font=Enum.Font.GothamBold; send.TextSize=12; send.Parent=win; nCorner(send,7)
-    send.MouseButton1Click:Connect(function()
-        local m=inp.Text
-        if m and m~="" then inp.Text=""; chatSend(m) end
-    end)
-    task.spawn(function()
-        local rendered=0
-        while cg.Parent do
-            task.wait(0.3)
-            if content and win.Visible then
-                local now=#chatMsgs
-                if now~=rendered then
-                    for _,ch in ipairs(content:GetChildren()) do
-                        if ch:IsA("TextLabel") or ch:IsA("Frame") then ch:Destroy() end
-                    end
-                    for i,m in ipairs(chatMsgs) do
-                        local f=Instance.new("Frame"); f.Size=UDim2.new(1,0,0,0); f.AutomaticSize=Enum.AutomaticSize.Y
-                        f.BackgroundColor3=m.self and Color3.fromRGB(30,50,40) or Theme.bgCard
-                        f.BorderSizePixel=0; f.LayoutOrder=i; f.Parent=content; nCorner(f,6)
-                        local txt=Instance.new("TextLabel"); txt.Size=UDim2.new(1,-12,0,0); txt.AutomaticSize=Enum.AutomaticSize.Y
-                        txt.Position=UDim2.new(0,6,0,4); txt.BackgroundTransparency=1
-                        txt.Text="["..(m.user or "?").."]: "..(m.text or "")
-                        txt.TextColor3=m.self and Color3.fromRGB(180,255,200) or Theme.text
-                        txt.Font=Enum.Font.Gotham; txt.TextSize=11; txt.TextXAlignment=Enum.TextXAlignment.Left; txt.TextWrapped=true; txt.Parent=f
-                    end
-                    rendered=now
-                end
-            end
-        end
-    end)
-    icon.MouseButton1Click:Connect(function() win.Visible=not win.Visible end)
-    task.spawn(function()
-        task.wait(25)
-        if not chatOk and chatFailCount>=5 then
-            if chatIconRef then chatIconRef.Visible=false end
-            if chatWindowRef then chatWindowRef.Visible=false end
-        end
-    end)
 end
 
 local function buildReturnBtn()
@@ -2297,7 +2167,6 @@ end)
 
 buildPlatform()
 buildGUI()
-buildChatIcon()
 buildReturnBtn()
 buildToggleGui()
 buildKillstreak()
