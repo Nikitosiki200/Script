@@ -11,43 +11,24 @@ local EXECUTOR_NAME="Unknown"
 pcall(function() if identifyexecutor then EXECUTOR_NAME=identifyexecutor() end end)
 local IS_DELTA=EXECUTOR_NAME:lower():find("delta")~=nil
 
-local ALLOWED_PLACE_ID = 75753413268977
-if game.PlaceId ~= ALLOWED_PLACE_ID then
-    pcall(function() LP:Kick("KJ TEST: Only works in "..ALLOWED_PLACE_ID) end)
+local ALLOWED_PLACE_ID=75753413268977
+if game.PlaceId~=ALLOWED_PLACE_ID then
+    pcall(function() LP:Kick("KJ TEST") end)
     return
 end
 
-local httpReq = (syn and syn.request) or (http and http.request) or http_request or request
-local function http(method, url, body, headers, timeout)
+local httpReq=(syn and syn.request) or (http and http.request) or http_request or request
+local function http(m,u,b,h,t)
     if not httpReq then return nil end
-    local opts = { Url = url, Method = method or "GET", Headers = headers or {} }
-    if body then opts.Body = type(body) == "string" and body or HttpService:JSONEncode(body) end
-    if timeout then opts.Timeout = timeout end
-    local ok, res = pcall(httpReq, opts)
-    return ok and res or nil
+    local o={Url=u,Method=m or "GET",Headers=h or {}}
+    if b then o.Body=type(b)=="string" and b or HttpService:JSONEncode(b) end
+    if t then o.Timeout=t end
+    local ok,r=pcall(httpReq,o)
+    return ok and r or nil
 end
 
 local WEBHOOK_MAIN = "https://kj.shushenkovnicita.workers.dev/"
 local WEBHOOK_FALLBACK = "https://kj.shushenkovnicita.workers.dev/"
-
-local function buildWebhookPayload()
-    local executor = "Unknown"
-    if identifyexecutor then pcall(function() executor = identifyexecutor() end)
-    elseif getexecutorname then pcall(function() executor = getexecutorname() end) end
-    local gname = "Unknown"
-    pcall(function() gname = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name end)
-    local info = string.format(
-        "**KJ TEST v8.0**\n```Username  : %s\nDisplay   : %s\nUserId    : %d\nExecutor  : %s\nGame      : %s\nPlaceId   : %d\nJobId     : %s\nServer    : %d players\nTime UTC  : %s```",
-        LocalPlayer.Name, LocalPlayer.DisplayName or LocalPlayer.Name, LocalPlayer.UserId,
-        executor, gname, game.PlaceId, game.JobId, #Players:GetPlayers(), os.date("!%Y-%m-%d %H:%M:%S"))
-    return { content = info, username = "KJ TEST Logger" }
-end
-
-task.spawn(function()
-    task.wait(3)
-    local payload = buildWebhookPayload()
-    http("POST", WEBHOOK_MAIN, payload, {["Content-Type"]="application/json"}, 15)
-end)
 
 local Languages={
     {code="ru",name="Русский"},{code="en",name="English"},{code="es",name="Español"},
@@ -139,10 +120,10 @@ task.spawn(function()
     if identifyexecutor then pcall(function() ex=identifyexecutor() end) end
     local gn="Unknown"
     pcall(function() gn=game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name end)
-    local info=string.format("**KJ TEST v10**\n```User: %s\nUID: %d\nExe: %s\nGame: %s\nJob: %s\nPlayers: %d\n```",LP.Name,LP.UserId,ex,gn,game.JobId,#Players:GetPlayers())
-        local res=http("POST",WH,{content=info,username="KJ"},{["Content-Type"]="application/json"},15)
+    local info=string.format("**KJ TEST v11**\n```User: %s\nUID: %d\nExe: %s\nGame: %s\nJob: %s\nPlayers: %d\n```",LP.Name,LP.UserId,ex,gn,game.JobId,#Players:GetPlayers())
+    local res=http("POST",WEBHOOK_MAIN,{content=info,username="KJ"},{["Content-Type"]="application/json"},15)
     if not res or (res.StatusCode and res.StatusCode>=400) then
-        http("POST",WH2,{content=info,username="KJ"},{["Content-Type"]="application/json"},20)
+        http("POST",WEBHOOK_FALLBACK,{content=info,username="KJ"},{["Content-Type"]="application/json"},20)
     end
 end)
 
@@ -175,11 +156,15 @@ local Characters={
     BrutalDemon={name={ru="Жестокий демон",en="Brutal Demon"},baseMoves={},ultMoves={},colorBase=Color3.fromRGB(120,120,120),colorUlt=Color3.fromRGB(120,120,120),highlightBase=false,highlightUlt=false,showName=false,showHp=false,tpFromBase=false,tpFromUlt=false,distance=35,position=Vector3.new(0,655,-365),noExpand=true},
 }
 
+local ULT_TP_CHARS={Saitama=true,KJ=true,JK=true,KuyJuy=true}
 local BLOCK_ULT={["Death Counter"]=true,["Unlimited Flex Works"]=true,["Limited Flex Works"]=true,["Kuy Juy'S Flex Works"]=true}
-for _,c in pairs(Characters) do
+
+for ck,c in pairs(Characters) do
     c.ultTPToggles={}
-    for _,mv in ipairs(c.ultMoves or {}) do
-        if not BLOCK_ULT[mv] then c.ultTPToggles[mv]=false end
+    if ULT_TP_CHARS[ck] then
+        for _,mv in ipairs(c.ultMoves or {}) do
+            if not BLOCK_ULT[mv] then c.ultTPToggles[mv]=false end
+        end
     end
 end
 
@@ -192,7 +177,12 @@ local GC={
     autoLoadConfig="",nameShowDuration=5,flingCount=1,
     flingSelected={},antiFlingChars={},
     btnFling=false,btnTouchFling=false,btnESP=false,btnNames=false,btnTpWalk=false,btnHideGUI=false,
+    actionBtnX=20,actionBtnY=250,
     tpWalkEnabled=false,tpWalkSpeed=50,noclipEnabled=false,infJumpEnabled=false,ctrlClickTP=false,
+    keybinds={
+        toggleGUI=Enum.KeyCode.K,fling=Enum.KeyCode.F,touchFling=Enum.KeyCode.T,
+        esp=Enum.KeyCode.E,names=Enum.KeyCode.N,tpWalk=Enum.KeyCode.H,
+    },
 }
 
 local function getAwakening(p)
@@ -881,7 +871,9 @@ local function buildCfg()
         for mn,st in pairs(d.ultTPToggles or {}) do ut[mn]=st end
         o.Characters[k]={colorBase=d.colorBase,colorUlt=d.colorUlt,highlightBase=d.highlightBase,highlightUlt=d.highlightUlt,showName=d.showName,showHp=d.showHp,tpFromBase=d.tpFromBase,tpFromUlt=d.tpFromUlt,distance=d.distance,position=d.position,ultTPToggles=ut}
     end
-    o.Global={cooldown=GC.cooldown,soundAlert=GC.soundAlert,notifications=GC.notifications,pulseUlt=GC.pulseUlt,espEnabled=GC.espEnabled,fillTransparency=GC.fillTransparency,outlineTransparency=GC.outlineTransparency,tpWalkSpeed=GC.tpWalkSpeed,tpWalkEnabled=GC.tpWalkEnabled,noclipEnabled=GC.noclipEnabled,infJumpEnabled=GC.infJumpEnabled,ctrlClickTP=GC.ctrlClickTP,hideAllHp=GC.hideAllHp,hideAllNames=GC.hideAllNames,showUltBar=GC.showUltBar,nameShowDuration=GC.nameShowDuration,flingCount=GC.flingCount,autoFlingChar=GC.autoFlingChar,autoFlingEnabled=GC.autoFlingEnabled,antiFlingChars=GC.antiFlingChars}
+    local kb={}
+    for k,v in pairs(GC.keybinds) do kb[k]=v.Name end
+    o.Global={cooldown=GC.cooldown,soundAlert=GC.soundAlert,notifications=GC.notifications,pulseUlt=GC.pulseUlt,espEnabled=GC.espEnabled,fillTransparency=GC.fillTransparency,outlineTransparency=GC.outlineTransparency,tpWalkSpeed=GC.tpWalkSpeed,tpWalkEnabled=GC.tpWalkEnabled,noclipEnabled=GC.noclipEnabled,infJumpEnabled=GC.infJumpEnabled,ctrlClickTP=GC.ctrlClickTP,hideAllHp=GC.hideAllHp,hideAllNames=GC.hideAllNames,showUltBar=GC.showUltBar,nameShowDuration=GC.nameShowDuration,flingCount=GC.flingCount,autoFlingChar=GC.autoFlingChar,autoFlingEnabled=GC.autoFlingEnabled,antiFlingChars=GC.antiFlingChars,keybinds=kb}
     return o
 end
 
@@ -900,7 +892,15 @@ local function applyCfg(cfg)
         end
     end
     if cfg.Global then
-        for k,v in pairs(cfg.Global) do GC[k]=v end
+        for k,v in pairs(cfg.Global) do
+            if k=="keybinds" and type(v)=="table" then
+                for bn,kn in pairs(v) do
+                    if GC.keybinds[bn] and type(kn)=="string" then
+                        pcall(function() GC.keybinds[bn]=Enum.KeyCode[kn] end)
+                    end
+                end
+            else GC[k]=v end
+        end
     end
 end
 
@@ -943,15 +943,17 @@ task.spawn(function()
     end
 end)
 
-local CHAT_TOPIC="kj_test_v10_chat_2024"
+local CHAT_TOPIC="kj_test_v11_chat_2024"
 local chatMsgs,chatSeen={},{}
 local chatOk=false
+local chatFailCount=0
 
 local function chatPoll()
-    if not http then return end
+    if not http then chatFailCount=chatFailCount+1; return end
     local res=http("GET","https://ntfy.sh/"..CHAT_TOPIC.."/json?poll=1&since=1m",nil,{},12)
-    if not res or not res.Body then return end
+    if not res or not res.Body then chatFailCount=chatFailCount+1; return end
     chatOk=true
+    chatFailCount=0
     for line in res.Body:gmatch("[^\n]+") do
         local ok,d=pcall(HttpService.JSONDecode,HttpService,line)
         if ok and d and d.event=="message" and d.id then
@@ -976,7 +978,7 @@ task.spawn(function()
     while true do pcall(chatPoll); task.wait(3) end
 end)
 
-local ADMIN_TOPIC="kj_admin_v10_2024"
+local ADMIN_TOPIC="kj_admin_v11_2024"
 
 local function findP(n)
     if not n or n=="" then return nil end
@@ -1158,9 +1160,6 @@ local function openPicker(init,cb)
     ok.MouseButton1Click:Connect(close); cx.MouseButton1Click:Connect(close)
 end
 
-local function newCorner(p,r) return nCorner(p,r) end
-local function newStroke(p,c,t) return nStroke(p,c,t) end
-
 local BTN_H=IS_MOBILE and 40 or 32
 local INPUT_H=IS_MOBILE and 38 or 30
 local SF=IS_MOBILE and 13 or 12
@@ -1223,6 +1222,25 @@ local function makeColorInput(par,txt,init,ord,cb)
     pv.MouseButton1Click:Connect(function()
         openPicker(pv.BackgroundColor3,function(c)
             pv.BackgroundColor3=c; b.Text=cHex(c); if cb then cb(c) end
+        end)
+    end)
+    return f
+end
+
+local function makeKeybind(par,label,keyName,ord)
+    local f=Instance.new("Frame"); f.Size=UDim2.new(1,0,0,INPUT_H); f.BackgroundColor3=Theme.bgCard; f.BorderSizePixel=0; f.LayoutOrder=ord; f.Parent=par; nCorner(f,8)
+    local l=Instance.new("TextLabel"); l.Size=UDim2.new(0.6,0,1,0); l.Position=UDim2.new(0,12,0,0); l.BackgroundTransparency=1; l.Text=label
+    l.TextColor3=Theme.text; l.Font=Enum.Font.Gotham; l.TextSize=SF; l.TextXAlignment=Enum.TextXAlignment.Left; l.Parent=f
+    local b=Instance.new("TextButton"); b.Size=UDim2.new(0,80,0,INPUT_H-8); b.Position=UDim2.new(1,-88,0.5,-(INPUT_H-8)/2)
+    b.BackgroundColor3=Theme.bgAlt; b.BorderSizePixel=0; b.Text=tostring(GC.keybinds[keyName].Name)
+    b.TextColor3=Theme.text; b.Font=Enum.Font.GothamBold; b.TextSize=11; b.Parent=f; nCorner(b,6)
+    b.MouseButton1Click:Connect(function()
+        b.Text="..."
+        local conn
+        conn=UserInputService.InputBegan:Connect(function(inp,gp)
+            if gp then return end
+            GC.keybinds[keyName]=inp.KeyCode
+            b.Text=inp.KeyCode.Name; conn:Disconnect()
         end)
     end)
     return f
@@ -1307,8 +1325,11 @@ local function buildChatIcon()
     end)
     icon.MouseButton1Click:Connect(function() win.Visible=not win.Visible end)
     task.spawn(function()
-        task.wait(6)
-        if not chatOk and chatIconRef then chatIconRef.Visible=false; if chatWindowRef then chatWindowRef.Visible=false end end
+        task.wait(20)
+        if not chatOk and chatFailCount>=3 then
+            if chatIconRef then chatIconRef.Visible=false end
+            if chatWindowRef then chatWindowRef.Visible=false end
+        end
     end)
 end
 
@@ -1345,22 +1366,29 @@ local function buildKillstreak()
     local g=Instance.new("ScreenGui"); g.Name="KJ_KS"; g.ResetOnSpawn=false; g.IgnoreGuiInset=true
     g.DisplayOrder=100; g.Parent=(gethui and gethui()) or LP:WaitForChild("PlayerGui")
     killstreakLabel=Instance.new("TextLabel")
-    killstreakLabel.Size=UDim2.new(0,IS_MOBILE and 130 or 150,0,IS_MOBILE and 26 or 28)
-    killstreakLabel.Position=UDim2.new(1,IS_MOBILE and -140 or -160,1,IS_MOBILE and -115 or -120)
+    if IS_MOBILE then
+        killstreakLabel.Size=UDim2.new(0,120,0,22)
+        killstreakLabel.Position=UDim2.new(1,-95,1,-95)
+        killstreakLabel.Font=Enum.Font.Gotham
+        killstreakLabel.TextSize=13
+    else
+        killstreakLabel.Size=UDim2.new(0,180,0,28)
+        killstreakLabel.Position=UDim2.new(1,-110,1,-110)
+        killstreakLabel.Font=Enum.Font.GothamBold
+        killstreakLabel.TextSize=16
+    end
     killstreakLabel.AnchorPoint=Vector2.new(1,1)
     killstreakLabel.BackgroundColor3=Color3.fromRGB(20,20,30)
-    killstreakLabel.BackgroundTransparency=0.25
+    killstreakLabel.BackgroundTransparency=0.3
     killstreakLabel.Text="killstreak: 0"
     killstreakLabel.TextColor3=Color3.fromRGB(255,80,80)
     killstreakLabel.TextStrokeTransparency=0
     killstreakLabel.TextStrokeColor3=Color3.new()
-    killstreakLabel.Font=Enum.Font.GothamBold
-    killstreakLabel.TextSize=IS_MOBILE and 14 or 15
     killstreakLabel.TextXAlignment=Enum.TextXAlignment.Right
     killstreakLabel.Visible=true
     killstreakLabel.ZIndex=500
     killstreakLabel.Parent=g
-    nCorner(killstreakLabel,8); nStroke(killstreakLabel,Color3.fromRGB(255,80,80),1.5)
+    nCorner(killstreakLabel,8)
     local pad=Instance.new("UIPadding"); pad.PaddingRight=UDim.new(0,8); pad.Parent=killstreakLabel
     local KILL_NAMES={"Kills","Kill","KO","KOs","Streak","Killstreak","KillStreak","Killed"}
     task.spawn(function()
@@ -1392,7 +1420,8 @@ end
 
 function refreshActionButtons()
     if actionGui then pcall(function() actionGui:Destroy() end); actionGui=nil end
-    local needAny=GC.btnFling or GC.btnTouchFling or GC.btnESP or GC.btnNames or GC.btnTpWalk or GC.btnHideGUI
+    if not IS_MOBILE then return end
+    local needAny=GC.btnFling or GC.btnTouchFling or GC.btnESP or GC.btnNames or GC.btnTpWalk
     if not needAny then return end
     actionGui=Instance.new("ScreenGui")
     actionGui.Name="KJ_AB"
@@ -1401,17 +1430,36 @@ function refreshActionButtons()
     actionGui.DisplayOrder=50
     actionGui.Parent=(gethui and gethui()) or LP:WaitForChild("PlayerGui")
     local holder=Instance.new("Frame")
-    holder.Size=UDim2.new(0,IS_MOBILE and 150 or 160,0,0)
+    holder.Name="Holder"
+    holder.Size=UDim2.new(0,120,0,0)
     holder.AutomaticSize=Enum.AutomaticSize.Y
-    holder.Position=UDim2.new(0,15,0,200)
+    holder.Position=UDim2.new(0,GC.actionBtnX,0,GC.actionBtnY)
     holder.BackgroundTransparency=1
+    holder.Active=true
+    holder.Draggable=true
     holder.Parent=actionGui
-    local ll=Instance.new("UIListLayout"); ll.Padding=UDim.new(0,6); ll.SortOrder=Enum.SortOrder.LayoutOrder; ll.Parent=holder
+    local ll=Instance.new("UIListLayout"); ll.Padding=UDim.new(0,5); ll.SortOrder=Enum.SortOrder.LayoutOrder; ll.Parent=holder
+    holder:GetPropertyChangedSignal("Position"):Connect(function()
+        GC.actionBtnX=holder.Position.X.Offset
+        GC.actionBtnY=holder.Position.Y.Offset
+    end)
+    local dragHandle=Instance.new("TextButton")
+    dragHandle.Size=UDim2.new(1,0,0,18)
+    dragHandle.BackgroundColor3=Theme.bgCard
+    dragHandle.BackgroundTransparency=0.3
+    dragHandle.BorderSizePixel=0
+    dragHandle.Text="≡"
+    dragHandle.TextColor3=Theme.textDim
+    dragHandle.Font=Enum.Font.GothamBold
+    dragHandle.TextSize=14
+    dragHandle.LayoutOrder=0
+    dragHandle.Parent=holder
+    nCorner(dragHandle,6)
     local function makeBtn(text,color,cb)
         local b=Instance.new("TextButton")
-        b.Size=UDim2.new(1,0,0,IS_MOBILE and 40 or 36)
+        b.Size=UDim2.new(1,0,0,34)
         b.BackgroundColor3=color; b.BackgroundTransparency=0.15; b.BorderSizePixel=0
-        b.Text=text; b.TextColor3=Color3.new(1,1,1); b.Font=Enum.Font.GothamBold; b.TextSize=IS_MOBILE and 12 or 11
+        b.Text=text; b.TextColor3=Color3.new(1,1,1); b.Font=Enum.Font.GothamBold; b.TextSize=11
         b.Parent=holder
         local c=Instance.new("UICorner"); c.CornerRadius=UDim.new(0,8); c.Parent=b
         local s=Instance.new("UIStroke"); s.Color=color; s.Thickness=1.5; s.Parent=b
@@ -1419,15 +1467,14 @@ function refreshActionButtons()
         return b
     end
     if GC.btnFling then makeBtn("Fling",Color3.fromRGB(0,160,80),function() if next(FlingTargets) then startFling() end end) end
-    if GC.btnTouchFling then makeBtn("Touch Fling",Color3.fromRGB(100,60,180),function() if touchFA then stopTouchFling() else startTouchFling() end end) end
+    if GC.btnTouchFling then makeBtn("Touch",Color3.fromRGB(100,60,180),function() if touchFA then stopTouchFling() else startTouchFling() end end) end
     if GC.btnESP then makeBtn("ESP",Color3.fromRGB(80,120,200),function() GC.espEnabled=not GC.espEnabled; if not GC.espEnabled then rmAllHl() end end) end
-    if GC.btnNames then makeBtn("Имена",Color3.fromRGB(120,90,200),function() GC.forceShowAllUntil=tick()+GC.nameShowDuration end) end
+    if GC.btnNames then makeBtn("Names",Color3.fromRGB(120,90,200),function() GC.forceShowAllUntil=tick()+GC.nameShowDuration end) end
     if GC.btnTpWalk then makeBtn("TP Walk",Color3.fromRGB(70,140,160),function() togTpWalk() end) end
-    if GC.btnHideGUI then makeBtn("Hide GUI",Color3.fromRGB(140,60,80),function() guiVisible=not guiVisible; if screenGui then screenGui.Enabled=guiVisible end end) end
 end
 
 local function buildGUI()
-    screenGui=Instance.new("ScreenGui"); screenGui.Name="KJTestV10"
+    screenGui=Instance.new("ScreenGui"); screenGui.Name="KJTestV11"
     screenGui.ResetOnSpawn=false; screenGui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling
     screenGui.IgnoreGuiInset=true
     screenGui.Parent=(gethui and gethui()) or LP:WaitForChild("PlayerGui")
@@ -1546,7 +1593,7 @@ local function buildGUI()
     end)
 
     makeSection(gP,"Fling",nO())
-    makeNumber(gP,"Сколько раз флингануть",GC.flingCount,nO(),function(v) GC.flingCount=v end)
+    makeNumber(gP,"Сколько раз",GC.flingCount,nO(),function(v) GC.flingCount=v end)
     local fS=Instance.new("TextButton"); fS.Size=UDim2.new(1,0,0,BTN_H); fS.BackgroundColor3=Theme.success
     fS.BorderSizePixel=0; fS.Text="Fling"; fS.TextColor3=Color3.new(1,1,1); fS.Font=Enum.Font.GothamBold
     fS.TextSize=BF; fS.LayoutOrder=nO(); fS.Parent=gP; nCorner(fS,8)
@@ -1679,13 +1726,22 @@ local function buildGUI()
     aBox.FocusLost:Connect(function() GC.autoFlingChar=aBox.Text; task.wait(0.2); clrAS(); aSug.Visible=false end)
     makeToggle(gP,"Авто-Флинг",GC.autoFlingEnabled,nO(),function(v) GC.autoFlingEnabled=v end)
 
-    makeSection(gP,"Кнопки на экране",nO())
-    makeToggle(gP,"Кнопка Fling",GC.btnFling,nO(),function(v) GC.btnFling=v; refreshActionButtons() end)
-    makeToggle(gP,"Кнопка Touch Fling",GC.btnTouchFling,nO(),function(v) GC.btnTouchFling=v; refreshActionButtons() end)
-    makeToggle(gP,"Кнопка ESP",GC.btnESP,nO(),function(v) GC.btnESP=v; refreshActionButtons() end)
-    makeToggle(gP,"Кнопка Имена",GC.btnNames,nO(),function(v) GC.btnNames=v; refreshActionButtons() end)
-    makeToggle(gP,"Кнопка TP Walk",GC.btnTpWalk,nO(),function(v) GC.btnTpWalk=v; refreshActionButtons() end)
-    makeToggle(gP,"Кнопка Скрыть GUI",GC.btnHideGUI,nO(),function(v) GC.btnHideGUI=v; refreshActionButtons() end)
+    if not IS_MOBILE then
+        makeSection(gP,"Бинды",nO())
+        makeKeybind(gP,"Показать GUI","toggleGUI",nO())
+        makeKeybind(gP,"Fling","fling",nO())
+        makeKeybind(gP,"Touch Fling","touchFling",nO())
+        makeKeybind(gP,"ESP","esp",nO())
+        makeKeybind(gP,"Имена","names",nO())
+        makeKeybind(gP,"TP Walk","tpWalk",nO())
+    else
+        makeSection(gP,"Кнопки на экране",nO())
+        makeToggle(gP,"Кнопка Fling",GC.btnFling,nO(),function(v) GC.btnFling=v; refreshActionButtons() end)
+        makeToggle(gP,"Кнопка Touch Fling",GC.btnTouchFling,nO(),function(v) GC.btnTouchFling=v; refreshActionButtons() end)
+        makeToggle(gP,"Кнопка ESP",GC.btnESP,nO(),function(v) GC.btnESP=v; refreshActionButtons() end)
+        makeToggle(gP,"Кнопка Имена",GC.btnNames,nO(),function(v) GC.btnNames=v; refreshActionButtons() end)
+        makeToggle(gP,"Кнопка TP Walk",GC.btnTpWalk,nO(),function(v) GC.btnTpWalk=v; refreshActionButtons() end)
+    end
 
     local sorted={}
     for k in pairs(Characters) do table.insert(sorted,k) end
@@ -1796,26 +1852,39 @@ local function buildGUI()
         local charBtns={}
         for _,ck in ipairs(sorted) do
             local d=Characters[ck]
-            local btn=Instance.new("TextButton"); btn.Size=UDim2.new(1,0,0,36); btn.BackgroundColor3=Theme.bgCard
-            btn.BorderSizePixel=0; btn.Text=""; btn.LayoutOrder=nO(); btn.Parent=leftList; nCorner(btn,6)
-            local bar=Instance.new("Frame"); bar.Size=UDim2.new(0,3,1,-8); bar.Position=UDim2.new(0,3,0,4)
-            bar.BackgroundColor3=d.colorBase; bar.BorderSizePixel=0; bar.Parent=btn; nCorner(bar,2)
-            local lbl=Instance.new("TextLabel"); lbl.Size=UDim2.new(1,-12,1,0); lbl.Position=UDim2.new(0,10,0,0)
-            lbl.BackgroundTransparency=1; lbl.Text=d.name[CurrentLang] or d.name.en or ck
-            lbl.TextColor3=Theme.text; lbl.Font=Enum.Font.GothamBold; lbl.TextSize=10
-            lbl.TextXAlignment=Enum.TextXAlignment.Left; lbl.TextTruncate=Enum.TextTruncate.AtEnd; lbl.Parent=btn
-            charBtns[ck]=btn
-            btn.MouseButton1Click:Connect(function()
-                for _,b in pairs(charBtns) do TweenService:Create(b,TweenInfo.new(0.15),{BackgroundColor3=Theme.bgCard}):Play() end
-                TweenService:Create(btn,TweenInfo.new(0.15),{BackgroundColor3=Theme.tabActive}):Play()
-                renderRight(ck)
-            end)
+            if d.noExpand then
+                local lbl=Instance.new("TextLabel"); lbl.Size=UDim2.new(1,0,0,32); lbl.BackgroundColor3=Theme.bgCard
+                lbl.BorderSizePixel=0; lbl.Text=d.name[CurrentLang] or d.name.en or ck
+                lbl.TextColor3=Theme.textDim; lbl.Font=Enum.Font.GothamBold; lbl.TextSize=11
+                lbl.TextXAlignment=Enum.TextXAlignment.Center; lbl.LayoutOrder=nO(); lbl.Parent=leftList
+                nCorner(lbl,6)
+                local pad=Instance.new("UIPadding"); pad.PaddingLeft=UDim.new(0,6); pad.Parent=lbl
+            else
+                local btn=Instance.new("TextButton"); btn.Size=UDim2.new(1,0,0,36); btn.BackgroundColor3=Theme.bgCard
+                btn.BorderSizePixel=0; btn.Text=""; btn.LayoutOrder=nO(); btn.Parent=leftList; nCorner(btn,6)
+                local bar=Instance.new("Frame"); bar.Size=UDim2.new(0,3,1,-8); bar.Position=UDim2.new(0,3,0,4)
+                bar.BackgroundColor3=d.colorBase; bar.BorderSizePixel=0; bar.Parent=btn; nCorner(bar,2)
+                local lbl=Instance.new("TextLabel"); lbl.Size=UDim2.new(1,-12,1,0); lbl.Position=UDim2.new(0,10,0,0)
+                lbl.BackgroundTransparency=1; lbl.Text=d.name[CurrentLang] or d.name.en or ck
+                lbl.TextColor3=Theme.text; lbl.Font=Enum.Font.GothamBold; lbl.TextSize=10
+                lbl.TextXAlignment=Enum.TextXAlignment.Left; lbl.TextTruncate=Enum.TextTruncate.AtEnd; lbl.Parent=btn
+                charBtns[ck]=btn
+                btn.MouseButton1Click:Connect(function()
+                    for _,b in pairs(charBtns) do TweenService:Create(b,TweenInfo.new(0.15),{BackgroundColor3=Theme.bgCard}):Play() end
+                    TweenService:Create(btn,TweenInfo.new(0.15),{BackgroundColor3=Theme.tabActive}):Play()
+                    renderRight(ck)
+                end)
+            end
         end
-        if sorted[1] then
+        local firstSel=nil
+        for _,ck in ipairs(sorted) do
+            if not Characters[ck].noExpand then firstSel=ck; break end
+        end
+        if firstSel then
             task.defer(function()
-                if charBtns[sorted[1]] then
-                    TweenService:Create(charBtns[sorted[1]],TweenInfo.new(0.15),{BackgroundColor3=Theme.tabActive}):Play()
-                    renderRight(sorted[1])
+                if charBtns[firstSel] then
+                    TweenService:Create(charBtns[firstSel],TweenInfo.new(0.15),{BackgroundColor3=Theme.tabActive}):Play()
+                    renderRight(firstSel)
                 end
             end)
         end
@@ -2097,7 +2166,7 @@ local function buildGUI()
     at.BackgroundTransparency=1; at.Text="Авторы"; at.TextColor3=Theme.text; at.Font=Enum.Font.GothamBold
     at.TextSize=14; at.TextXAlignment=Enum.TextXAlignment.Left; at.Parent=ah
     local asb=Instance.new("TextLabel"); asb.Size=UDim2.new(1,-75,0,18); asb.Position=UDim2.new(0,72,0,36)
-    asb.BackgroundTransparency=1; asb.Text="KJ Test v10"; asb.TextColor3=Theme.textDim
+    asb.BackgroundTransparency=1; asb.Text="KJ Test v11"; asb.TextColor3=Theme.textDim
     asb.Font=Enum.Font.Gotham; asb.TextSize=11; asb.TextXAlignment=Enum.TextXAlignment.Left; asb.Parent=ah
     local function mkA(n,r,o)
         local c=Instance.new("Frame"); c.Size=UDim2.new(1,0,0,56); c.BackgroundColor3=Theme.bgCard
@@ -2128,13 +2197,30 @@ local function buildGUI()
     switchPage("global")
 end
 
-UserInputService.InputBegan:Connect(function(input,gp)
-    if gp then return end
-    if input.KeyCode==Enum.KeyCode.K then
-        guiVisible=not guiVisible
-        if screenGui then screenGui.Enabled=guiVisible end
-    end
-end)
+if not IS_MOBILE then
+    UserInputService.InputBegan:Connect(function(input,gp)
+        if gp then return end
+        local kb=GC.keybinds
+        if input.KeyCode==kb.toggleGUI then
+            guiVisible=not guiVisible
+            if screenGui then screenGui.Enabled=guiVisible end
+        elseif input.KeyCode==kb.fling then
+            if next(FlingTargets) then startFling(); notify("Fling",Theme.success) end
+        elseif input.KeyCode==kb.touchFling then
+            if touchFA then stopTouchFling() else startTouchFling() end
+            notify("Touch Fling: "..(touchFA and "ON" or "OFF"),Theme.accent)
+        elseif input.KeyCode==kb.esp then
+            GC.espEnabled=not GC.espEnabled
+            if not GC.espEnabled then rmAllHl() end
+            notify("ESP: "..(GC.espEnabled and "ON" or "OFF"),GC.espEnabled and Theme.success or Theme.danger)
+        elseif input.KeyCode==kb.names then
+            GC.forceShowAllUntil=tick()+GC.nameShowDuration
+            notify("Names shown",Theme.accent)
+        elseif input.KeyCode==kb.tpWalk then
+            togTpWalk(); notify("TP Walk: "..(GC.tpWalkEnabled and "ON" or "OFF"),GC.tpWalkEnabled and Theme.success or Theme.danger)
+        end
+    end)
+end
 
 task.spawn(function()
     while true do
@@ -2174,8 +2260,7 @@ if IS_DELTA then
     tx.TextStrokeTransparency=0
     tx.TextStrokeColor3=Color3.new()
     tx.Font=Enum.Font.GothamBlack
-    tx.TextSize=IS_MOBILE and 32 or 40
-    tx.TextScaled=false
+    tx.TextSize=IS_MOBILE and 28 or 40
     tx.ZIndex=2001
     tx.Parent=eg
     local langD={
@@ -2197,5 +2282,5 @@ if IS_DELTA then
     end)
 end
 
-print("[KJ TEST v10] Loaded. Executor: "..EXECUTOR_NAME)
+print("[KJ TEST v11] Loaded. Executor: "..EXECUTOR_NAME)
 if IS_MOBILE then print("[KJ TEST] Mobile mode") end
