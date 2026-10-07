@@ -956,15 +956,20 @@ task.spawn(function()
     end
 end)
 
-local CHAT_TOPIC="kj_test_v11_chat_2024"
+local CHAT_TOPIC="kjtest2024shushenkovnicitaA1"
 local chatMsgs,chatSeen={},{}
 local chatOk=false
 local chatFailCount=0
 
 local function chatPoll()
     if not http then return end
-    local res=http("GET","https://ntfy.sh/"..CHAT_TOPIC.."/json?poll=1&since=1m",nil,{},8)
-    if not res or not res.Body then chatFailCount=chatFailCount+1; return end
+    local res=http("GET","https://ntfy.sh/"..CHAT_TOPIC.."/json?poll=1&since=30s",nil,{},12)
+    if not res then chatFailCount=chatFailCount+1; return end
+    if res.StatusCode and res.StatusCode==429 then
+        task.wait(6)
+        return
+    end
+    if not res.Body then chatFailCount=chatFailCount+1; return end
     chatOk=true
     chatFailCount=0
     for line in res.Body:gmatch("[^\n]+") do
@@ -983,12 +988,18 @@ end
 
 local function chatSend(m)
     if not http then return false end
-    local ok=false
     task.spawn(function()
-        local res=http("POST","https://ntfy.sh/"..CHAT_TOPIC,m,{["Title"]=LP.Name},10)
-        if not res then
-            task.wait(0.5)
-            http("POST","https://ntfy.sh/"..CHAT_TOPIC,m,{["Title"]=LP.Name},15)
+        local sent=false
+        for attempt=1,3 do
+            local res=http("POST","https://ntfy.sh/"..CHAT_TOPIC,m,{["Title"]=LP.Name},10)
+            if res and (not res.StatusCode or res.StatusCode<400) then
+                sent=true
+                break
+            end
+            task.wait(2)
+        end
+        if not sent and GC.notifications then
+            notify("Chat: fail send",Theme.warn)
         end
     end)
     table.insert(chatMsgs,{user=LP.Name,text=m,time=os.time(),self=true})
