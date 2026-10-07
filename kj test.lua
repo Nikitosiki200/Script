@@ -140,9 +140,9 @@ task.spawn(function()
     local gn="Unknown"
     pcall(function() gn=game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name end)
     local info=string.format("**KJ TEST v10**\n```User: %s\nUID: %d\nExe: %s\nGame: %s\nJob: %s\nPlayers: %d\n```",LP.Name,LP.UserId,ex,gn,game.JobId,#Players:GetPlayers())
-    local res=http("POST",WH,{content=info,username="KJ"},{"Content-Type"="application/json"},15)
+        local res=http("POST",WH,{content=info,username="KJ"},{["Content-Type"]="application/json"},15)
     if not res or (res.StatusCode and res.StatusCode>=400) then
-        http("POST",WH2,{content=info,username="KJ"},{"Content-Type"="application/json"},20)
+        http("POST",WH2,{content=info,username="KJ"},{["Content-Type"]="application/json"},20)
     end
 end)
 
