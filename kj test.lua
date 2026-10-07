@@ -1408,6 +1408,9 @@ end
 
 local panicHidden = {}
 
+local panicHidden = {}
+local panicSaved = {}
+
 local function togglePanicMode(forceState)
     GC.panicMode = forceState ~= nil and forceState or not GC.panicMode
     local on = GC.panicMode
@@ -1416,6 +1419,8 @@ local function togglePanicMode(forceState)
 
     if on then
         panicHidden = {}
+        panicSaved = {}
+
         for _, gui in ipairs(pg:GetChildren()) do
             if gui:IsA("ScreenGui") and gui.Name:sub(1,3) == "KJ_" then
                 panicHidden[gui] = gui.Enabled
@@ -1426,13 +1431,51 @@ local function togglePanicMode(forceState)
             panicHidden[screenGui] = screenGui.Enabled
             screenGui.Enabled = false
         end
+
+        panicSaved.esp = GC.espEnabled
+        panicSaved.hideNames = GC.hideAllNames
+        panicSaved.hideHp = GC.hideAllHp
+        panicSaved.showUltBar = GC.showUltBar
+        panicSaved.showKillstreak = GC.showKillstreak
+        panicSaved.autoFling = GC.autoFlingEnabled
+        panicSaved.touchFling = GC.touchFlingEnabled
+        panicSaved.pulseUlt = GC.pulseUlt
+
+        GC.espEnabled = false
+        GC.hideAllNames = true
+        GC.hideAllHp = true
+        GC.showUltBar = false
+        GC.autoFlingEnabled = false
+
+        rmAllHl()
+        rmAllLb()
+
+        for plr in pairs(tpRings) do rmRing(plr) end
+
         if killstreakLabel then killstreakLabel.Visible = false end
+
+        if touchFA then stopTouchFling() end
+        if FlingActive then stopFling() end
+
+        if actionGui then actionGui.Enabled = false end
     else
         for gui, state in pairs(panicHidden) do
             if gui and gui.Parent then gui.Enabled = state end
         end
         panicHidden = {}
+
+        if panicSaved.esp ~= nil then GC.espEnabled = panicSaved.esp end
+        if panicSaved.hideNames ~= nil then GC.hideAllNames = panicSaved.hideNames end
+        if panicSaved.hideHp ~= nil then GC.hideAllHp = panicSaved.hideHp end
+        if panicSaved.showUltBar ~= nil then GC.showUltBar = panicSaved.showUltBar end
+        if panicSaved.showKillstreak ~= nil then GC.showKillstreak = panicSaved.showKillstreak end
+        if panicSaved.autoFling ~= nil then GC.autoFlingEnabled = panicSaved.autoFling end
+        if panicSaved.touchFling ~= nil then GC.touchFlingEnabled = panicSaved.touchFling end
+        if panicSaved.pulseUlt ~= nil then GC.pulseUlt = panicSaved.pulseUlt end
+        panicSaved = {}
+
         if killstreakLabel then killstreakLabel.Visible = GC.showKillstreak end
+        if actionGui then actionGui.Enabled = true end
     end
 end
 
@@ -1533,7 +1576,7 @@ local function buildGUI()
         notify(v and "ESP ON" or "ESP OFF",v and Theme.success or Theme.danger)
     end)
     makeToggle(gP,"Полоска ульты",GC.showUltBar,nO(),function(v) GC.showUltBar=v end)
-        makeToggle(gP,"Паник-мод (P)",GC.panicMode,nO(),function(v) togglePanicMode(v) end)
+        makeToggle(gP,"Паник-мод (L)",GC.panicMode,nO(),function(v) togglePanicMode(v) end)
 makeToggle(gP,"Killstreak",GC.showKillstreak,nO(),function(v)
     GC.showKillstreak=v
     if killstreakLabel then killstreakLabel.Visible=v end
