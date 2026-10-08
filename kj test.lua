@@ -257,7 +257,9 @@ end
 local function getHp(m,p)
     local h=findHum(m)
     if not h and p and p.Character then h=findHum(p.Character) end
-    if h then return math.max(0,math.floor(h.Health+0.5)),math.max(1,math.floor(h.MaxHealth+0.5)) end
+    if h then
+        return math.max(0, h.Health), math.max(1, h.MaxHealth)
+    end
     return nil,nil
 end
 
@@ -434,13 +436,13 @@ local function updLabel(p,ck,form)
         nl.Text=(d.name[CurrentLang] or d.name.en).." ["..(form=="ult" and "U" or "B").."]"
         nl.TextColor3=(form=="ult") and d.colorUlt or d.colorBase
     else nl.Text="" end
-    local showHp=(not d) or d.showHp
+        local showHp=(not d) or d.showHp
     if GC.hideAllHp then hl.Visible=false
     elseif showHp then
         local hp,mx=getHp(m,p)
-        if hp then
+        if hp and hp < 20 then
             hl.Visible=true
-            hl.Text=hp.." / "..mx
+            hl.Text=string.format("%.1f / %.0f", hp, mx)
             local r=hp/math.max(1,mx)
             hl.TextColor3=r>0.6 and Color3.fromRGB(120,255,120) or (r>0.3 and Color3.fromRGB(255,220,80) or Color3.fromRGB(255,90,90))
         else hl.Visible=false end
@@ -2059,8 +2061,8 @@ makeNumber(gP,"Время имён",GC.nameShowDuration,nO(),function(v) GC.name
                 local col=(info.form=="ult") and d.colorUlt or d.colorBase
                 e.charLbl.TextColor3=col; e.accentBar.BackgroundColor3=col
             else e.charLbl.Text="-"; e.charLbl.TextColor3=Theme.textDim; e.accentBar.BackgroundColor3=Theme.textDim end
-            local m=getCharModel(plr); local hp,mx=getHp(m,plr)
-            if hp then e.hpLbl.Text="HP: "..hp.." / "..mx
+                        local m=getCharModel(plr); local hp,mx=getHp(m,plr)
+            if hp then e.hpLbl.Text=string.format("HP: %.1f / %.0f", hp, mx)
                 local r=hp/math.max(1,mx)
                 e.hpLbl.TextColor3=r>0.6 and Color3.fromRGB(120,255,120) or (r>0.3 and Color3.fromRGB(255,220,80) or Color3.fromRGB(255,90,90))
             else e.hpLbl.Text="HP: -"; e.hpLbl.TextColor3=Theme.textDim end
