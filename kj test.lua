@@ -188,7 +188,7 @@ local GC={
     hideAllHp=false,hideAllNames=false,showUltBar=true,showKillstreak=true,panicMode=false,
     autoFlingChar="",autoFlingEnabled=false,touchFlingEnabled=false,
     autoLoadConfig="",nameShowDuration=5,flingCount=1,
-    flingSelected={},antiFlingChars={},
+    flingSelected={},antiFlingChars={}, titleEnabled=false,titleText="Мой титул",titleColor=Color3.fromRGB(255,255,255),
     btnFling=false,btnTouchFling=false,btnESP=false,btnNames=false,btnTpWalk=false,btnHideGUI=false,
     actionBtnX=20,actionBtnY=250,
     tpWalkEnabled=false,tpWalkSpeed=50,noclipEnabled=false,infJumpEnabled=false,ctrlClickTP=false,
@@ -892,7 +892,7 @@ local function buildCfg()
     end
     local kb={}
     for k,v in pairs(GC.keybinds) do kb[k]=v.Name end
-    o.Global={cooldown=GC.cooldown,soundAlert=GC.soundAlert,notifications=GC.notifications,pulseUlt=GC.pulseUlt,espEnabled=GC.espEnabled,fillTransparency=GC.fillTransparency,outlineTransparency=GC.outlineTransparency,tpWalkSpeed=GC.tpWalkSpeed,tpWalkEnabled=GC.tpWalkEnabled,noclipEnabled=GC.noclipEnabled,infJumpEnabled=GC.infJumpEnabled,ctrlClickTP=GC.ctrlClickTP,hideAllHp=GC.hideAllHp,hideAllNames=GC.hideAllNames,showUltBar=GC.showUltBar,showKillstreak=GC.showKillstreak,nameShowDuration=GC.nameShowDuration,flingCount=GC.flingCount,autoFlingChar=GC.autoFlingChar,autoFlingEnabled=GC.autoFlingEnabled,antiFlingChars=GC.antiFlingChars,keybinds=kb}
+    o.Global={cooldown=GC.cooldown,soundAlert=GC.soundAlert,notifications=GC.notifications,pulseUlt=GC.pulseUlt,espEnabled=GC.espEnabled,fillTransparency=GC.fillTransparency,outlineTransparency=GC.outlineTransparency,tpWalkSpeed=GC.tpWalkSpeed,tpWalkEnabled=GC.tpWalkEnabled,noclipEnabled=GC.noclipEnabled,infJumpEnabled=GC.infJumpEnabled,ctrlClickTP=GC.ctrlClickTP,hideAllHp=GC.hideAllHp,hideAllNames=GC.hideAllNames,showUltBar=GC.showUltBar,showKillstreak=GC.showKillstreak,nameShowDuration=GC.nameShowDuration,flingCount=GC.flingCount,autoFlingChar=GC.autoFlingChar,autoFlingEnabled=GC.autoFlingEnabled,antiFlingChars=GC.antiFlingChars,keybinds=kb,titleEnabled=GC.titleEnabled,titleText=GC.titleText,titleColor=GC.titleColor}
     return o
 end
 
@@ -1185,6 +1185,19 @@ local function makeNumber(par,txt,init,ord,cb)
     b.FocusLost:Connect(function()
         local n=tonumber(b.Text)
         if n then if cb then cb(n) end else b.Text=tostring(init) end
+    end)
+    return f
+end
+
+local function makeTextInput(par,txt,init,ord,cb)
+    local f=Instance.new("Frame"); f.Size=UDim2.new(1,0,0,INPUT_H); f.BackgroundColor3=Theme.bgCard; f.BorderSizePixel=0; f.LayoutOrder=ord; f.Parent=par; nCorner(f,8)
+    local l=Instance.new("TextLabel"); l.Size=UDim2.new(0.5,0,1,0); l.Position=UDim2.new(0,12,0,0); l.BackgroundTransparency=1; l.Text=txt
+    l.TextColor3=Theme.text; l.Font=Enum.Font.Gotham; l.TextSize=SF; l.TextXAlignment=Enum.TextXAlignment.Left; l.Parent=f
+    local b=Instance.new("TextBox"); b.Size=UDim2.new(0,150,0,INPUT_H-8); b.Position=UDim2.new(1,-160,0.5,-(INPUT_H-8)/2)
+    b.BackgroundColor3=Theme.bgAlt; b.BorderSizePixel=0; b.Text=tostring(init); b.TextColor3=Theme.text
+    b.Font=Enum.Font.GothamBold; b.TextSize=SF; b.ClearTextOnFocus=false; b.Parent=f; nCorner(b,6)
+    b.FocusLost:Connect(function()
+        if cb then cb(b.Text) end
     end)
     return f
 end
@@ -1485,6 +1498,53 @@ local function togglePanicMode(forceState)
     end
 end
 
+local _titleOrig=nil
+
+local function getMyTitleTextLabel()
+    local model
+    local live=workspace:FindFirstChild("Live")
+    if live then model=live:FindFirstChild(LP.Name) end
+    if not model then model=LP.Character end
+    if not model then return nil end
+    local head=model:FindFirstChild("Head")
+    if not head then return nil end
+    local ui=head:FindFirstChild("TitleUI")
+    if not ui then return nil end
+    local tl=ui:FindFirstChild("Text")
+    if tl and tl:IsA("TextLabel") then return tl end
+    return nil
+end
+
+local function applyMyTitle()
+    if not GC.titleEnabled then return end
+    local tl=getMyTitleTextLabel()
+    if tl then
+        tl.Text=GC.titleText
+        tl.TextColor3=GC.titleColor
+    end
+end
+
+-- Периодически переприменяем, если игра сбрасывает титул
+task.spawn(function()
+    while true do
+        task.wait(0.3)
+        if GC.titleEnabled then
+            local tl=getMyTitleTextLabel()
+            if tl and (tl.Text~=GC.titleText or tl.TextColor3~=GC.titleColor) then
+                tl.Text=GC.titleText
+                tl.TextColor3=GC.titleColor
+            end
+        end
+    end
+end)
+
+-- Применять после респавна/смены персонажа
+LP.CharacterAdded:Connect(function()
+    task.wait(1.5)
+    _titleOrig=nil
+    if GC.titleEnabled then applyMyTitle() end
+end)
+
 local function buildGUI()
     screenGui=Instance.new("ScreenGui"); screenGui.Name="KJTestV11"
     screenGui.ResetOnSpawn=false; screenGui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling
@@ -1573,6 +1633,25 @@ local function buildGUI()
     makeToggle(gP,"Звук",GC.soundAlert,nO(),function(v) GC.soundAlert=v end)
     makeToggle(gP,"Уведомления",GC.notifications,nO(),function(v) GC.notifications=v end)
     makeToggle(gP,"Пульс ульты",GC.pulseUlt,nO(),function(v) GC.pulseUlt=v end)
+        makeSection(gP,"Свой титул",nO())
+    makeToggle(gP,"Вкл титул",GC.titleEnabled,nO(),function(v)
+        GC.titleEnabled=v
+        if v then
+            if not _titleOrig then
+                local tl=getMyTitleTextLabel()
+                if tl then _titleOrig={text=tl.Text,color=tl.TextColor3} end
+            end
+            applyMyTitle()
+        else
+            if _titleOrig then
+                local tl=getMyTitleTextLabel()
+                if tl then tl.Text=_titleOrig.text; tl.TextColor3=_titleOrig.color end
+                _titleOrig=nil
+            end
+        end
+    end)
+    makeTextInput(gP,"Текст титула",GC.titleText,nO(),function(v) GC.titleText=v; applyMyTitle() end)
+    makeColorInput(gP,"Цвет титула",GC.titleColor,nO(),function(c) GC.titleColor=c; applyMyTitle() end)
     makeSection(gP,"Переключатели",nO())
     makeToggle(gP,"Скрыть HP",GC.hideAllHp,nO(),function(v) GC.hideAllHp=v end)
     makeToggle(gP,"Скрыть имена",GC.hideAllNames,nO(),function(v) GC.hideAllNames=v end)
