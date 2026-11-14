@@ -1627,7 +1627,9 @@ local function buildGUI()
         notify(v and "ESP ON" or "ESP OFF",v and Theme.success or Theme.danger)
     end)
     makeToggle(gP,"Полоска ульты",GC.showUltBar,nO(),function(v) GC.showUltBar=v end)
+            if not IS_MOBILE then
         makeToggle(gP,"Паник-мод (L)",GC.panicMode,nO(),function(v) togglePanicMode(v) end)
+    end
 makeToggle(gP,"Killstreak",GC.showKillstreak,nO(),function(v)
     GC.showKillstreak=v
     if killstreakLabel then killstreakLabel.Visible=v end
