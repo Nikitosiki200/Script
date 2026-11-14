@@ -1394,8 +1394,6 @@ function refreshActionButtons()
 end
 
 local panicHidden = {}
-
-local panicHidden = {}
 local panicSaved = {}
 
 local function togglePanicMode(forceState)
